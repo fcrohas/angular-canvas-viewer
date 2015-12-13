@@ -1,0 +1,31 @@
+{
+  "name": "angular-raphael-viewer",
+  "authors": [
+    "Fabrice Crohas <fcrohas@gmail.com>"
+  ],
+  "description": "Image viewer using raphaeljs",
+  "main": "module.js",
+  "moduleType": [],
+  "keywords": [
+    "angular",
+    "raphael",
+    "image",
+    "viewer"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "assets/lib",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.4.8",
+    "raphael": "~2.1.4",
+    "bootstrap": "~3.3.6"
+  }
+}
