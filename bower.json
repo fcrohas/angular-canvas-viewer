@@ -13,7 +13,7 @@
     "viewer"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/fcrohas/angular-raphael-viewer",
   "private": true,
   "ignore": [
     "**/.*",
