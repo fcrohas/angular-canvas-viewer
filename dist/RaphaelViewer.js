@@ -6,7 +6,8 @@ angular.module('RaphaelViewer',[]).directive('imageViewer', ['$window', function
 		// terminal: true,
 		scope: {
 			imageSource : '=src',
-			overlays : '=overlays'
+			overlays : '=overlays',
+			title : '@title'
 		}, // {} = isolate, true = child, false/undefined = no change
 		// controller: function($scope, $element, $attrs, $transclude) {},
 		// require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
@@ -18,11 +19,12 @@ angular.module('RaphaelViewer',[]).directive('imageViewer', ['$window', function
 				'ng-mouseup="mouseup($event)"'+ 
 				'ng-init="canMove=false"'+
 				'ng-mousemove="mousedrag($event,canMove)">'+
+				'<div class="title">{{title}}</div>'+
 				'<div class="command">'+
-				'<div class="btn btn-primary" ng-click="rotateleft()"><i class="fa fa-rotate-left"></i></div>'+
-				'<div class="btn btn-primary" ng-click="rotateright()"><i class="fa fa-rotate-right"></i></div>'+
-				'<div class="btn btn-primary" ng-click="zoomout()"><i class="fa fa-search-minus"></i></div>'+
-				'<div class="btn btn-primary" ng-click="zoomin()"><i class="fa fa-search-plus"></i></div>'+
+				'<div class="btn btn-info" ng-click="rotateleft()"><i class="fa fa-rotate-left"></i></div>'+
+				'<div class="btn btn-info" ng-click="rotateright()"><i class="fa fa-rotate-right"></i></div>'+
+				'<div class="btn btn-info" ng-click="zoomout()"><i class="fa fa-search-minus"></i></div>'+
+				'<div class="btn btn-info" ng-click="zoomin()"><i class="fa fa-search-plus"></i></div>'+
 				'</div>'+
 		'</div>',
 		// templateUrl: '',
@@ -40,30 +42,65 @@ angular.module('RaphaelViewer',[]).directive('imageViewer', ['$window', function
 			var overlays = [];
 			var elImage = paper.set();
 			$scope.$watch('imageSource', function(value) {
+				if (value == undefined || value == null)
+					return;
 				var imgObj = new Image();
-				imgObj.onload = function() {
-					img = paper.image(value,0, 0, imgObj.width, imgObj.height);
-					img.toBack();
-					elImage.push(img);
+
+				// Remove element if it exist already
+				if (img != null) {
+					img.remove();
+					if (elImage.length > 0) {
+						for (var i = 1; i< elImage.length; i++) {
+							elImage[i].remove();
+						}
+					}
+
 				}
-				imgObj.src = value;
+
+				if (typeof(value) == 'object') {
+					// Object type file
+					var reader = new FileReader();
+					imgObj.onload = function() {
+						img = paper.image(reader.result,0, 0, imgObj.width, imgObj.height);
+						img.toBack();
+						elImage.push(img);
+					}
+					reader.onload = function() {
+						imgObj.src = reader.result;
+					}
+					reader.readAsDataURL(value);
+				} else if(typeof(value) == 'string') {
+					// String url
+					imgObj.onload = function() {
+						img = paper.image(value,0, 0, imgObj.width, imgObj.height);
+						img.toBack();
+						elImage.push(img);
+					}
+					imgObj.src = value;
+				}
 			});
 
 			$scope.$watch('overlays', function(newarr, oldarr) {
 				// initialize new overlay
-				if (oldarr.length == newarr.length) {
-					angular.forEach(newarr, function(item) {
-						var rect = paper.rect(item.x, item.y, item.w, item.h, 1);
-						rect.attr({ 'fill' : item.color, 'fill-opacity': 0.7, 'stroke-width': 0.2});
-						rect.toFront();
-						elImage.push(rect);
-						overlays.push(rect);
+				if (newarr == null || oldarr == null)
+					return;
+				// If overlays are thre
+				if (overlays.length > 0) {
+					// Clean object 
+				
+					angular.forEach(overlays, function(overlay) {
+						overlay.remove();
 					});
 				}
 				// new added
-				if (newarr.length > oldarr.length) {
-
-				}
+				angular.forEach(newarr, function(item) {
+					overlays = [];
+					var rect = paper.rect(item.x, item.y, item.w, item.h, 1);
+					rect.attr({ 'fill' : item.color, 'fill-opacity': 0.4, 'stroke-width': 0.2});
+					rect.toFront();
+					elImage.push(rect);
+					overlays.push(rect);
+				});
 
 				applyTransform();
 			}, true);
@@ -74,8 +111,8 @@ angular.module('RaphaelViewer',[]).directive('imageViewer', ['$window', function
 
 			$scope.mousedown = function($event) {
 				$scope.canMove = true;
-				curPos.x = $event.layerX;
-				curPos.y = $event.layerY;
+				curPos.x = $event.layerX || $event.offsetX;
+				curPos.y = $event.layerY || $event.offsetY;
 			};
 
 			$scope.mouseup= function($event) {
@@ -85,19 +122,21 @@ angular.module('RaphaelViewer',[]).directive('imageViewer', ['$window', function
 			$scope.mousedrag = function($event,canMove) {
 				if (img != null) {
 					if ($scope.canMove) {
-						var translateX = $event.layerX - curPos.x;
-						var translateY = $event.layerY - curPos.y; 
+						var coordX = $event.layerX || $event.offsetX;
+						var coordY = $event.layerY || $event.offsetY;
+						var translateX = coordX - curPos.x;
+						var translateY = coordY - curPos.y; 
 						picPos.x += translateX * 1/zoom;
 						picPos.y += translateY * 1/zoom;
 						applyTransform();
-						curPos.x = $event.layerX;
-						curPos.y = $event.layerY;
+						curPos.x = coordX;
+						curPos.y = coordY;
 					}
 				}
 			};
 
 			$scope.zoomin = function() {
-				zoom += 0.2;
+				zoom += 0.1;
 				if (zoom >= 6) {
 					zoom = 6;
 				}
@@ -105,9 +144,9 @@ angular.module('RaphaelViewer',[]).directive('imageViewer', ['$window', function
 			};
 
 			$scope.zoomout = function() {
-				zoom -= 0.2;
-				if (zoom <= 0) {
-					zoom = 0.2;
+				zoom -= 0.1;
+				if (zoom <= 0.05) {
+					zoom = 0.05;
 				}
 				applyTransform();
 			};

@@ -12,9 +12,19 @@
 
 .command > .btn {
 	z-index : 100;
-	opacity: 0.5;
+	opacity: 0.8;
 }
 
 .command > .btn > i {
 	z-index : 100;
+}
+
+.title {
+	position : absolute;
+	top : 0px;
+	z-index : 100;
+	padding : 5px;
+	background-color: #000000;
+	opacity: 0.8;
+	color : white;
 }
