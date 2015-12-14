@@ -87,8 +87,8 @@ angular.module('app.directives').directive('imageViewer', ['$window', function($
 					if ($scope.canMove) {
 						var translateX = $event.layerX - curPos.x;
 						var translateY = $event.layerY - curPos.y; 
-						picPos.x += translateX;
-						picPos.y += translateY;
+						picPos.x += translateX * 1/zoom;
+						picPos.y += translateY * 1/zoom;
 						applyTransform();
 						curPos.x = $event.layerX;
 						curPos.y = $event.layerY;
@@ -98,11 +98,17 @@ angular.module('app.directives').directive('imageViewer', ['$window', function($
 
 			$scope.zoomin = function() {
 				zoom += 0.2;
+				if (zoom >= 6) {
+					zoom = 6;
+				}
 				applyTransform();
 			};
 
 			$scope.zoomout = function() {
 				zoom -= 0.2;
+				if (zoom <= 0) {
+					zoom = 0.2;
+				}
 				applyTransform();
 			};
 
