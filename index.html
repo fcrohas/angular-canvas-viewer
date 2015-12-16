@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="RaphaelViewer" ng-strict-di>
+<html ng-app="ImageViewerSample" ng-strict-di>
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,19 +9,20 @@
 	<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap/dist/css/bootstrap-theme.min.css">
 	<!-- endbower -->
+	<link rel="stylesheet" href="dist/RaphaelViewer.css">
 	<link rel="stylesheet" href="assets/css/style.css">
 	<!-- bower:js -->
 	<script src="assets/lib/angular/angular.js" type="text/javascript" charset="utf-8"></script>
 	<script src="assets/lib/raphael/raphael.js" type="text/javascript" charset="utf-8"></script>
 	<!-- endbower -->
 	<script src="app/app.modules.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="dist/RaphaelViewer.js" type="text/javascript" charset="utf-8"></script>	
 	<script src="app/controller/app.controller.js" type="text/javascript" charset="utf-8"></script>	
-	<script src="app/directives/viewer.js" type="text/javascript" charset="utf-8"></script>	
 </head>
 <body ng-controller="MainController">
 	<div class="container-fluid">
 		<div class="col-md-12">
-			<image-viewer src="image" overlays="overlays"></image-viewer>
+			<image-viewer src="image" title="This is a test image" overlays="overlays"></image-viewer>
 		</div>
 	</div>
 </body>

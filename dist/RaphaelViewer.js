@@ -19,7 +19,7 @@ angular.module('RaphaelViewer',[]).directive('imageViewer', ['$window', function
 				'ng-mouseup="mouseup($event)"'+ 
 				'ng-init="canMove=false"'+
 				'ng-mousemove="mousedrag($event,canMove)">'+
-				'<div class="title">{{title}}</div>'+
+				'<div class="title" ng-if="title!=null">{{title}}</div>'+
 				'<div class="command">'+
 				'<div class="btn btn-info" ng-click="rotateleft()"><i class="fa fa-rotate-left"></i></div>'+
 				'<div class="btn btn-info" ng-click="rotateright()"><i class="fa fa-rotate-right"></i></div>'+
