@@ -1,11 +1,25 @@
-.viewer {
+.viewer-container {
 	background-color: #e8e8e8;
 	border-radius: 5px;
+	border-color: black;
+	border-width: 2px;
+	box-shadow: 2px 2px 4px inset;
+	z-index : 5;
+}
+
+.viewer > svg {
+	z-index : 1;
+	padding-top : 2px;
+	padding-left : 2px;
+	padding-right : 2px;
+	padding-bottom : 0px;
+	width : 100%;
+	height : 100%;
 }
 
 .command {
 	position : absolute;
-	z-index : 100;
+	z-index : 10;
 	bottom : 10px;
 	right : 25px;
 }
@@ -24,7 +38,9 @@
 	top : 0px;
 	z-index : 100;
 	padding : 5px;
-	background-color: #000000;
+	background-color: #888888;
+	border-radius: 3px 0px 0px 0px;
+	margin-top: 2px;
 	opacity: 0.8;
 	color : white;
 }
