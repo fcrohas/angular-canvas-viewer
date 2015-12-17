@@ -23,14 +23,18 @@
 </head>
 <body ng-controller="MainController">
 	<div class="container-fluid max-height">
-		<div class="row half-height">
-			<div class="col-md-12 max-height">
-				<image-viewer src="image" title="This is a test RaphaelJs" overlays="overlays"></image-viewer>
+		<div class="row row-height-1">
+			<div clas="col-md-12 row-height-1">
+				<span>Please select a supported image to upload </span>
+			    <label class="fileUpload btn btn-primary btn-lg">
+			        <input type="file" class="upload" file-model="fileInput" accept="image/jpeg,image/png,image/tiff"/>
+			        <span>Envoyer <i class="fa fa-upload"></i></span>
+			    </label>
 			</div>
 		</div>
-		<div class="row half-height">
-			<div class="col-md-12 max-height">
-				<canvas-viewer src="image2" is-tiff="true" title="This is a test HTML5 Canvas" overlays="overlays"></canvas-viewer>
+		<div class="row row-height-9">
+			<div class="col-md-12 row-height-9">
+				<canvas-viewer src="fileInput" title="This is a test HTML5 Canvas" overlays="overlays"></canvas-viewer>
 			</div>
 		</div>
 	</div>

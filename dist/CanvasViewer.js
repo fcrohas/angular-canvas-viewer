@@ -52,58 +52,43 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			var picPos = { x : 0, y : 0};
 			var overlays = [];
 
+			function IsTiff(mimeType) {
+				return ((mimeType == "image/tiff") || (mimeType == "image/tif"));
+			}
+
 			$scope.$watch('imageSource', function(value) {
 				if (value === undefined || value === null)
 					return;
 				imgObj = new Image();
 
-				// Remove element if it exist already
-				if (img !== null) {
-					img.remove();
-					if (elImage.length > 0) {
-						for (var i = 1; i< elImage.length; i++) {
-							elImage[i].remove();
-						}
-					}
-
-				}
+				// start once image object is loaded
+				imgObj.onload = function() {
+					applyTransform();
+				};
 				
+				// test if object or string is input of directive
 				if (typeof(value) === 'object') {
 					// Object type file
 					var reader = new FileReader();
-					imgObj.onload = function() {
-						//ctx.drawImage(imgObj, 0, 0, imgObj.width, imgObj.height);
-						applyTransform();
-						//img = paper.image(reader.result,0, 0, imgObj.width, imgObj.height);
-						//img.toBack();
-						//elImage.push(img);
-					};
+					// read image object
 					reader.onload = function() {
-						imgObj.src = reader.result;
-					};
-					reader.readAsDataURL(value);
-				} else if(typeof(value) === 'string') {
-					// String url
-					imgObj.onload = function() {
-						//ctx.drawImage(imgObj, 0, 0, imgObj.width, imgObj.height, 0, 0 ,imgObj.width * 1/zoom, imgObj.height* 1/zoom);
-						applyTransform();
-						//img = paper.image(value,0, 0, imgObj.width, imgObj.height);
-						//img.toBack();
-						//elImage.push(img);
-					};
-					if ($scope.isTiff) {
-						// Get tiff file as binary data
-						$http.get(value,{responseType: "arraybuffer"}).then(function(response) {
+						if (IsTiff(value.type)) {
 							Tiff.initialize({TOTAL_MEMORY:16777216*10})
-							var tiff = new Tiff( {buffer : response.data});
-							//imgObj.data = tiff.readRGBAImage();
+							var tiff = new Tiff( {buffer : reader.result});
 							imgObj.width = tiff.width();
 							imgObj.height = tiff.height();
 							imgObj.src = tiff.toDataURL();
-						});
-					} else {
-						imgObj.src = value;
-					}
+						} else {
+							imgObj.src = reader.result;
+						}
+					};
+					// start loading image object
+					if (IsTiff(value.type)) 
+						reader.readAsArrayBuffer(value);
+					else
+						reader.readAsDataURL(value);
+				} else if(typeof(value) === 'string') {
+					imgObj.src = value;
 				}
 			});
 
@@ -111,21 +96,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// initialize new overlay
 				if (newarr === null || oldarr === null)
 					return;
-				// If overlays are thre
-				if (overlays.length > 0) {
-					// Clean object 
-				
-					angular.forEach(overlays, function(overlay) {
-						overlay.remove();
-					});
-				}
+
 				// new added
 				angular.forEach(newarr, function(item) {
 					overlays = [];
-					//var rect = paper.rect(item.x, item.y, item.w, item.h, 1);
-					//rect.attr({ 'fill' : item.color, 'fill-opacity': 0.4, 'stroke-width': 0.2});
-					//rect.toFront();
-					//elImage.push(rect);
 					overlays.push(item);
 				});
 

@@ -4,7 +4,20 @@
 * Description
 */
 angular.module('app.controller').controller('MainController', ['$scope', function($scope){
-	$scope.image = "assets/img/billet_specimen_securite2.jpg";
-	$scope.image2 = "assets/img/01.tiff";
+	$scope.fileInput = "assets/img/billet_specimen_securite2.jpg";
 	$scope.overlays = [{x : 50, y:155, w:106, h:29, color:'#00FF00'}];
+}]).directive('fileModel', ['$parse', function ($parse) {
+    return {
+        restrict: 'A',
+        link: function(scope, element, attrs) {
+            var model = $parse(attrs.fileModel);
+            var modelSetter = model.assign;
+
+            element.bind('change', function(){
+                scope.$apply(function(){
+                    modelSetter(scope, element[0].files[0]);
+                });
+            });
+        }
+    };
 }]);
