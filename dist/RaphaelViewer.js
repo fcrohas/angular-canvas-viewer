@@ -36,7 +36,6 @@ angular.module('RaphaelViewer',[]).directive('imageViewer', ['$window', function
 			// look for 
 			var inNode = angular.element(iElm.find('div')[0])[0];
 			directiveParentNode = inNode.parentNode.parentNode;
-			console.log(angular.element(directiveParentNode));
 			var paper = Raphael(raphaelEl, directiveParentNode.clientWidth-40, directiveParentNode.clientHeight-10);
 			var img = null;
 			var zoom = 1.0;
