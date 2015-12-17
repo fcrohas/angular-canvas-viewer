@@ -5,6 +5,18 @@
 	border-width: 2px;
 	box-shadow: 2px 2px 4px inset;
 	z-index : 5;
+	width : 100%;
+	height : 100%;	
+}
+
+canvas.viewer {
+	z-index : 1;
+	padding-top : 2px;
+	padding-left : 2px;
+	padding-right : 2px;
+	padding-bottom : 0px;
+	width : 100%;
+	height : 100%;
 }
 
 .viewer > svg {

@@ -12,3 +12,8 @@ body {
 	min-height: 100%;	
 	height: 100%;
 }
+
+.half-height {
+	min-height: 50%;	
+	height: 50%;
+}

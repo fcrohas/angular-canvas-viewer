@@ -14,16 +14,23 @@
 	<!-- bower:js -->
 	<script src="assets/lib/angular/angular.js" type="text/javascript" charset="utf-8"></script>
 	<script src="assets/lib/raphael/raphael.js" type="text/javascript" charset="utf-8"></script>
+	<script src="assets/lib/libtiff/tiff.min.js" type="text/javascript" charset="utf-8"></script>
 	<!-- endbower -->
 	<script src="app/app.modules.js" type="text/javascript" charset="utf-8"></script>	
 	<script src="dist/RaphaelViewer.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="dist/CanvasViewer.js" type="text/javascript" charset="utf-8"></script>	
 	<script src="app/controller/app.controller.js" type="text/javascript" charset="utf-8"></script>	
 </head>
 <body ng-controller="MainController">
 	<div class="container-fluid max-height">
-		<div class="row max-height">
+		<div class="row half-height">
 			<div class="col-md-12 max-height">
-				<image-viewer src="image" title="This is a test image" overlays="overlays"></image-viewer>
+				<image-viewer src="image" title="This is a test RaphaelJs" overlays="overlays"></image-viewer>
+			</div>
+		</div>
+		<div class="row half-height">
+			<div class="col-md-12 max-height">
+				<canvas-viewer src="image2" is-tiff="true" title="This is a test HTML5 Canvas" overlays="overlays"></canvas-viewer>
 			</div>
 		</div>
 	</div>
