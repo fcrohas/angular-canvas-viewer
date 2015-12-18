@@ -56,6 +56,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				return ((mimeType == "image/tiff") || (mimeType == "image/tif"));
 			}
 
+			function IsPdf(mimeType) {
+				return (mimeType == "application/pdf");
+			}
+
 			$scope.$watch('imageSource', function(value) {
 				if (value === undefined || value === null)
 					return;
@@ -72,18 +76,27 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					var reader = new FileReader();
 					// read image object
 					reader.onload = function() {
+						console.log(value.type);
 						if (IsTiff(value.type)) {
 							Tiff.initialize({TOTAL_MEMORY:16777216*10})
 							var tiff = new Tiff( {buffer : reader.result});
 							imgObj.width = tiff.width();
 							imgObj.height = tiff.height();
 							imgObj.src = tiff.toDataURL();
+						} else if (IsPdf(value.type)) {
+							var data = new Uint8Array(reader.result);
+							PDFJS.getDocument({data : data}).then(function(_pdfDoc) {
+								_pdfDoc.getPage(1).then(function(page) {
+									var viewport = page.getViewport( 1.0, 0);
+									page.render({canvasContext : ctx, viewport : viewport, intent : 'display'});
+								});
+							});
 						} else {
 							imgObj.src = reader.result;
 						}
 					};
 					// start loading image object
-					if (IsTiff(value.type)) 
+					if (IsTiff(value.type) || IsPdf(value.type)) 
 						reader.readAsArrayBuffer(value);
 					else
 						reader.readAsDataURL(value);
