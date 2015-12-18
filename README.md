@@ -7,7 +7,7 @@
 
 > The directive usage is as follow, `src` can be either a `string` or a `File` object :
 	
-	<image-viewer src="test.jpg" title="TITLE" overlays="overlays"></image-viewer>
+	<canvas-viewer src="test.jpg" title="TITLE" overlays="overlays"></canvas-viewer>
 
 > title and overlays are optional.
 
