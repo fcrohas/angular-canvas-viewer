@@ -129,44 +129,44 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 
 			function applyTransform() {
 				var canvas = ctx.canvas ;
+				var centerX = imgObj.width/2;
+				var centerY = imgObj.height/2;
 				// Clean before draw
 				ctx.clearRect(0,0,canvas.width, canvas.height);
 				// Save context
 				ctx.save();
 				// move to mouse position
-				ctx.translate(picPos.x * zoom , picPos.y * zoom );
+				ctx.translate((picPos.x + centerX), (picPos.y + centerY)  );
 				// Rotate canvas
 				ctx.rotate(rotate * Math.PI/180);			   
 				// Change scale
 				ctx.scale(zoom,zoom);
-				// Draw image at corerct position with correct scale
-				ctx.drawImage(imgObj, 0,0, imgObj.width , imgObj.height); //, 0, 0, imgObj.width * vRatio, imgObj.height * hRatio);
+				// Draw image at correct position with correct scale
+				ctx.drawImage(imgObj, -centerX , -centerY , imgObj.width , imgObj.height); 
 				// Restore
 			    ctx.restore();
 
-			    ctx.save();
 				// Draw overlays
 				if (overlays.length >0) {
 					angular.forEach(overlays, function(item) {
+					    ctx.save();
 						// move to mouse position
-						ctx.translate(picPos.x * zoom, picPos.y * zoom);
+						ctx.translate((picPos.x + centerX) , (picPos.y + centerY));
 						// Rotate canvas
 						ctx.rotate(rotate * Math.PI/180);			   
 						// Change scale
 						ctx.scale(zoom,zoom);
 						// Start rect draw
 						ctx.beginPath();
-						ctx.rect(item.x , item.y , item.w , item.h);
-						ctx.fillStyle = 'rgba(0,255,0,0.4)';
+						ctx.rect((item.x - centerX), (item.y - centerY), item.w , item.h );
+						ctx.fillStyle = 'rgba(255,0,0,0.4)';
 						ctx.fill();
 						ctx.lineWidth = 1;
-						ctx.strokeStyle = 'rgb(0,255,128)';
+						ctx.strokeStyle = 'rgb(255,0,128)';
 						ctx.stroke();						
+					    ctx.restore();
 					});
 				}
-
-			    ctx.restore();
-
 			}
 
 			angular.element(canvasEl).bind('mousedown' , function($event) {
@@ -185,8 +185,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						var coordY = $event.offsetY;
 						var translateX = coordX - curPos.x;
 						var translateY = coordY - curPos.y; 
-						picPos.x += translateX * 1/zoom;
-						picPos.y += translateY * 1/zoom;
+						picPos.x += translateX;
+						picPos.y += translateY;
 						applyTransform();
 						curPos.x = coordX;
 						curPos.y = coordY;
