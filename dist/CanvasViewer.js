@@ -98,8 +98,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					return;
 
 				// new added
+				overlays = [];				
 				angular.forEach(newarr, function(item) {
-					overlays = [];
 					overlays.push(item);
 				});
 
