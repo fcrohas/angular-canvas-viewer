@@ -1,5 +1,56 @@
 angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http', function($window, $http){
+	function pdfReader(data, imgObj, ctx) {
+		this.reader = new FileReader();
+		// read image object
+		var that = this;
+		that.imgObj = imgObj;
+		this.reader.onload = function() {
+			var data = new Uint8Array(that.reader.result);
+			PDFJS.getDocument({data : data}).then(function(_pdfDoc) {
+				_pdfDoc.getPage(4).then(function(page) {
+					var viewport = page.getViewport( ctx.canvas.height / page.pageInfo.view[3], 0);
+					page.render({canvasContext : ctx, viewport : viewport, intent : 'display'}).then( function() {
+						that.imgObj.src = ctx.canvas.toDataURL();
+					});
+				});
+			});
+		};
+		this.reader.readAsArrayBuffer(data);
+		return this.reader;
+	}
+
+	function tiffReader(data, imgObj) {
+		this.reader = new FileReader();
+		var that = this;
+		that.imgObj = imgObj;
+		this.reader.onload = function() {
+			Tiff.initialize({TOTAL_MEMORY:16777216*10})
+			that.tiff = new Tiff( {buffer : that.reader.result});
+			that.imgObj.width = that.tiff.width();
+			that.imgObj.height = that.tiff.height();
+			that.imgObj.src = that.tiff.toDataURL();
+		};
+		this.reader.readAsArrayBuffer(data);
+		return this.reader;
+	}
+
+	function browserReader(data, imgObj) {
+		this.reader = new FileReader();
+		var that = this;
+		that.imgObj = imgObj;
+		this.reader.onload = function() {
+			that.imgObj.src = that.reader.result;
+		};
+		this.reader.readAsDataURL(data);
+	}
 	// Runs during compile
+	var formatReader = {
+		"image/tiff" : { create : tiffReader },
+		"application/pdf" : { create : pdfReader },
+		"image/png" : { create : browserReader},
+		"image/jpeg" : { create : browserReader}
+	};
+
 	return {
 		// name: '',
 		// priority: 1,
@@ -7,8 +58,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		scope: {
 			imageSource : '=src',
 			overlays : '=overlays',
-			title : '@title',
-			isTiff : '=isTiff'
+			title : '@title'
 		}, // {} = isolate, true = child, false/undefined = no change
 		// controller: function($scope, $element, $attrs, $transclude) {},
 		// require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
@@ -52,14 +102,6 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			var picPos = { x : 0, y : 0};
 			var overlays = [];
 
-			function IsTiff(mimeType) {
-				return ((mimeType == "image/tiff") || (mimeType == "image/tif"));
-			}
-
-			function IsPdf(mimeType) {
-				return (mimeType == "application/pdf");
-			}
-
 			$scope.$watch('imageSource', function(value) {
 				if (value === undefined || value === null)
 					return;
@@ -73,33 +115,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// test if object or string is input of directive
 				if (typeof(value) === 'object') {
 					// Object type file
-					var reader = new FileReader();
-					// read image object
-					reader.onload = function() {
-						console.log(value.type);
-						if (IsTiff(value.type)) {
-							Tiff.initialize({TOTAL_MEMORY:16777216*10})
-							var tiff = new Tiff( {buffer : reader.result});
-							imgObj.width = tiff.width();
-							imgObj.height = tiff.height();
-							imgObj.src = tiff.toDataURL();
-						} else if (IsPdf(value.type)) {
-							var data = new Uint8Array(reader.result);
-							PDFJS.getDocument({data : data}).then(function(_pdfDoc) {
-								_pdfDoc.getPage(1).then(function(page) {
-									var viewport = page.getViewport( 1.0, 0);
-									page.render({canvasContext : ctx, viewport : viewport, intent : 'display'});
-								});
-							});
-						} else {
-							imgObj.src = reader.result;
-						}
-					};
-					// start loading image object
-					if (IsTiff(value.type) || IsPdf(value.type)) 
-						reader.readAsArrayBuffer(value);
-					else
-						reader.readAsDataURL(value);
+					var typeReader = formatReader[value.type].create(value, imgObj, ctx);
 				} else if(typeof(value) === 'string') {
 					imgObj.src = value;
 				}
