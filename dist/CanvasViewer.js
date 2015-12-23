@@ -1,16 +1,29 @@
 angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http', function($window, $http){
-	function pdfReader(data, imgObj, ctx) {
+	function pdfReader(data, options) {
 		this.reader = new FileReader();
 		// read image object
 		var that = this;
-		that.imgObj = imgObj;
+		that.viewport = null;
+		that.imgObj = options.imgObj;
 		this.reader.onload = function() {
 			var data = new Uint8Array(that.reader.result);
 			PDFJS.getDocument({data : data}).then(function(_pdfDoc) {
 				_pdfDoc.getPage(4).then(function(page) {
-					var viewport = page.getViewport( ctx.canvas.height / page.pageInfo.view[3], 0);
-					page.render({canvasContext : ctx, viewport : viewport, intent : 'display'}).then( function() {
-						that.imgObj.src = ctx.canvas.toDataURL();
+					that.viewport = page.getViewport( options.zoom, options.rotate);
+					// save canvas size before rendering
+					var canvasWidth = options.ctx.canvas.width;
+					var canvasHeight = options.ctx.canvas.height;
+					// set viewport
+					options.ctx.canvas.width = that.viewport.width;
+					options.ctx.canvas.height = that.viewport.height;
+					// render to canvas
+					page.render({canvasContext : options.ctx, viewport : that.viewport, intent : 'print'}).then( function() {
+						that.imgObj.width = that.viewport.width;
+						that.imgObj.height = that.viewport.height;
+						that.imgObj.src = options.ctx.canvas.toDataURL();
+						// restore canvas
+						options.ctx.canvas.width = canvasWidth;
+						options.ctx.canvas.height = canvasHeight;
 					});
 				});
 			});
@@ -19,10 +32,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		return this.reader;
 	}
 
-	function tiffReader(data, imgObj) {
+	function tiffReader(data, options) {
 		this.reader = new FileReader();
 		var that = this;
-		that.imgObj = imgObj;
+		that.imgObj = options.imgObj;
 		this.reader.onload = function() {
 			Tiff.initialize({TOTAL_MEMORY:16777216*10})
 			that.tiff = new Tiff( {buffer : that.reader.result});
@@ -34,21 +47,31 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		return this.reader;
 	}
 
-	function browserReader(data, imgObj) {
+	function imageReader(data, options) {
 		this.reader = new FileReader();
 		var that = this;
-		that.imgObj = imgObj;
+		that.imgObj = options.imgObj;
 		this.reader.onload = function() {
 			that.imgObj.src = that.reader.result;
 		};
 		this.reader.readAsDataURL(data);
 	}
+
+	function mpegReader(data, imgObj) {
+
+	}
+
+	function wavReader(data, imgObj) {
+
+	}
 	// Runs during compile
 	var formatReader = {
 		"image/tiff" : { create : tiffReader },
 		"application/pdf" : { create : pdfReader },
-		"image/png" : { create : browserReader},
-		"image/jpeg" : { create : browserReader}
+		"image/png" : { create : imageReader},
+		"image/jpeg" : { create : imageReader},
+		"audio/wav" : { create : wavReader},
+		"audio/mpeg" : { create : mpegReader}
 	};
 
 	return {
@@ -72,6 +95,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				'</canvas>'+
 				'<div class="title" ng-if="title!=null">{{title}}</div>'+
 				'<div class="command">'+
+				'<div class="btn btn-info" ng-click="fittopage()"><i class="fa fa-file-o"></i></div>'+
 				'<div class="btn btn-info" ng-click="rotateleft()"><i class="fa fa-rotate-left"></i></div>'+
 				'<div class="btn btn-info" ng-click="rotateright()"><i class="fa fa-rotate-right"></i></div>'+
 				'<div class="btn btn-info" ng-click="zoomout()"><i class="fa fa-search-minus"></i></div>'+
@@ -95,9 +119,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			ctx.canvas.style.height = canvasSize.clientHeight;
 			// initialize variable
 			var img = null;
-			var imgObj = null;
-			var zoom = 1.0;
-			var rotate = 0;
+			var options = { imgObj : null, ctx : ctx, zoom : 1.0, rotate : 0};
 			var curPos = { x : 0, y : 0};
 			var picPos = { x : 0, y : 0};
 			var overlays = [];
@@ -105,19 +127,24 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			$scope.$watch('imageSource', function(value) {
 				if (value === undefined || value === null)
 					return;
-				imgObj = new Image();
+				options.imgObj = new Image();
+				// initialize values on load
+				options.zoom = 1.0;
+				options.rotate = 0;
+				curPos = { x : 0, y : 0};
+				picPos = { x : 0, y : 0};
 
 				// start once image object is loaded
-				imgObj.onload = function() {
+				options.imgObj.onload = function() {
 					applyTransform();
 				};
 				
 				// test if object or string is input of directive
 				if (typeof(value) === 'object') {
 					// Object type file
-					var typeReader = formatReader[value.type].create(value, imgObj, ctx);
+					var typeReader = formatReader[value.type].create(value, options);
 				} else if(typeof(value) === 'string') {
-					imgObj.src = value;
+					options.imgObj.src = value;
 				}
 			});
 
@@ -158,8 +185,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 
 			function applyTransform() {
 				var canvas = ctx.canvas ;
-				var centerX = imgObj.width/2;
-				var centerY = imgObj.height/2;
+				var centerX = options.imgObj.width/2;
+				var centerY = options.imgObj.height/2;
 				// Clean before draw
 				ctx.clearRect(0,0,canvas.width, canvas.height);
 				// Save context
@@ -167,11 +194,11 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// move to mouse position
 				ctx.translate((picPos.x + centerX), (picPos.y + centerY)  );
 				// Rotate canvas
-				ctx.rotate(rotate * Math.PI/180);			   
+				ctx.rotate( options.rotate * Math.PI/180);			   
 				// Change scale
-				ctx.scale(zoom,zoom);
+				ctx.scale( options.zoom, options.zoom);
 				// Draw image at correct position with correct scale
-				ctx.drawImage(imgObj, -centerX , -centerY , imgObj.width , imgObj.height); 
+				ctx.drawImage(options.imgObj, -centerX , -centerY , options.imgObj.width , options.imgObj.height); 
 				// Restore
 			    ctx.restore();
 
@@ -182,9 +209,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						// move to mouse position
 						ctx.translate((picPos.x + centerX) , (picPos.y + centerY));
 						// Rotate canvas
-						ctx.rotate(rotate * Math.PI/180);			   
+						ctx.rotate( options.rotate * Math.PI/180);			   
 						// Change scale
-						ctx.scale(zoom,zoom);
+						ctx.scale( options.zoom, options.zoom);
 						// Start rect draw
 						ctx.beginPath();
 						ctx.rect((item.x - centerX), (item.y - centerY), item.w , item.h );
@@ -209,7 +236,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			});
 
 			angular.element(canvasEl).bind('mousemove', function($event) {
-				if ((imgObj !== null) && ($scope.canMove)) {
+				if ((options.imgObj !== null) && ($scope.canMove)) {
 						var coordX = $event.offsetX;
 						var coordY = $event.offsetY;
 						var translateX = coordX - curPos.x;
@@ -223,34 +250,45 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			});
 
 			$scope.zoomin = function() {
-				zoom += 0.1;
-				if (zoom >= 6) {
-					zoom = 6;
+				options.zoom += 0.1;
+				if (options.zoom >= 6) {
+					options.zoom = 6;
 				}
 				applyTransform();
 			};
 
 			$scope.zoomout = function() {
-				zoom -= 0.1;
-				if (zoom <= 0.05) {
-					zoom = 0.05;
+				options.zoom -= 0.1;
+				if (options.zoom <= 0.05) {
+					options.zoom = 0.05;
 				}
 				applyTransform();
 			};
 
 			$scope.rotateleft = function() {
-				rotate -= 90;
-				if (rotate <= -360) {
-					rotate = 0;
+				options.rotate -= 90;
+				if (options.rotate <= -360) {
+					options.rotate = 0;
 				}
 				applyTransform();
 			};
 
 			$scope.rotateright = function() {
-				rotate += 90;
-				if (rotate >= 360) {
-					rotate = 0;
+				options.rotate += 90;
+				if (options.rotate >= 360) {
+					options.rotate = 0;
 				}
+				applyTransform();
+			};
+
+			$scope.fittopage = function() {
+				if ((options.imgObj.height > options.imgObj.width) && (options.imgObj.height > ctx.canvas.height)) {
+					options.zoom = ctx.canvas.height / options.imgObj.height;	
+				} else if (options.imgObj.width > ctx.canvas.width) {
+					options.zoom = ctx.canvas.width / options.imgObj.width;	
+				}
+				curPos = { x : 0, y : 0};
+				picPos = { x : 0, y : 0};
 				applyTransform();
 			};
 		}
