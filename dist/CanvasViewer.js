@@ -1,5 +1,11 @@
 angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http', function($window, $http){
+	function switchCommand(options, image, sound) {
+		options.controls.image = image;
+		options.controls.sound = sound;
+	}
+
 	function pdfReader(data, options) {
+		switchCommand( options, true, false);
 		this.reader = new FileReader();
 		// read image object
 		var that = this;
@@ -33,6 +39,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 	}
 
 	function tiffReader(data, options) {
+		switchCommand( options, true, false);
 		this.reader = new FileReader();
 		var that = this;
 		that.imgObj = options.imgObj;
@@ -48,6 +55,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 	}
 
 	function imageReader(data, options) {
+		switchCommand( options, true, false);
 		this.reader = new FileReader();
 		var that = this;
 		that.imgObj = options.imgObj;
@@ -57,12 +65,67 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		this.reader.readAsDataURL(data);
 	}
 
-	function mpegReader(data, imgObj) {
+	function mpegReader(data, options) {
 
 	}
 
-	function wavReader(data, imgObj) {
+	function wavReader(data, options) {
+		switchCommand( options, false, true);
+		this.reader = new FileReader();
+		var that = this;
+		var ctx = options.ctx;
+		try {
+			// Fix up for prefixing
+			$window.AudioContext = $window.AudioContext || $window.webkitAudioContext;
+			var adctx = new AudioContext();
+			// update options context audio
+			this.reader.onload = function() {
+				// creates a sound source
+				adctx.decodeAudioData( that.reader.result , function(buffer) {
+					var gradient = ctx.createLinearGradient(0,0,0,300);
+					gradient.addColorStop(1,'#000000');
+					gradient.addColorStop(0.75,'#ff0000');
+					gradient.addColorStop(0.25,'#ffff00');
+					gradient.addColorStop(0,'#ffffff');
+					// setup a javascript node
+					var javascriptNode = adctx.createScriptProcessor(2048, 1, 1);
+					var source = adctx.createBufferSource();
+					options.adsrc = source;
+					// tell the source which sound to play 
+					source.buffer = buffer; 
+					// setup a analyzer
+					var analyser = adctx.createAnalyser();
+					analyser.smoothingTimeConstant = 0.3;
+					analyser.fftSize = 512;
+					// connect the source to the analyser
+					source.connect(analyser);
+					// we use the javascript node to draw at a specific interval.
+					analyser.connect(javascriptNode);
+					javascriptNode.onaudioprocess = function() {
+					    // get the average for the first channel
+					    var array =  new Uint8Array(analyser.frequencyBinCount);
+					    analyser.getByteFrequencyData(array);
+					    // clear the current state
+					    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
+					    // set the fill style
+					    ctx.fillStyle=gradient;
+						for ( var i = 0; i < (array.length); i++ ){
+					        var value = array[i];
+					        ctx.fillRect(i*5,325-value,3,325);
+					    }
+					}				
+					// connect to destination, else it isn't called
+					javascriptNode.connect(adctx.destination);			
+					// connect the source to the context's destination (the speakers)
+					source.connect(adctx.destination); 
+					source.start(0);
+				}); 			
+			};
+			this.reader.readAsArrayBuffer(data);
+		}
+		catch(e) {
+		}
 	}
 	// Runs during compile
 	var formatReader = {
@@ -70,8 +133,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		"application/pdf" : { create : pdfReader },
 		"image/png" : { create : imageReader},
 		"image/jpeg" : { create : imageReader},
-		"audio/wav" : { create : wavReader},
-		"audio/mpeg" : { create : mpegReader}
+		"audio/x-wav" : { create : wavReader},
+		"audio/x-ogg" : { create : wavReader},
+		"audio/x-mpeg" : { create : mpegReader}
 	};
 
 	return {
@@ -95,12 +159,15 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				'ng-mousemove="mousedrag($event,canMove)">'+
 				'</canvas>'+
 				'<div class="title" ng-if="title!=null">{{title}}</div>'+
-				'<div class="command">'+
+				'<div class="command" ng-if="options.controls.image">'+
 				'<div class="btn btn-info" ng-click="fittopage()"><i class="fa fa-file-o"></i></div>'+
 				'<div class="btn btn-info" ng-click="rotateleft()"><i class="fa fa-rotate-left"></i></div>'+
 				'<div class="btn btn-info" ng-click="rotateright()"><i class="fa fa-rotate-right"></i></div>'+
 				'<div class="btn btn-info" ng-click="zoomout()"><i class="fa fa-search-minus"></i></div>'+
 				'<div class="btn btn-info" ng-click="zoomin()"><i class="fa fa-search-plus"></i></div></div>'+
+				'<div class="command" ng-if="options.controls.sound">'+
+				'<div class="btn btn-info" ng-click="stop()"><i class="fa fa-stop"></i></div>'+
+				'<div class="btn btn-info" ng-click="play()"><i class="fa fa-play"></i></div></div>'+
 		'</div>',
 		// templateUrl: '',
 		// replace: true,
@@ -123,14 +190,21 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			angular.extend(scope.options, {
 				imgObj : null, 
 				ctx : ctx, 
-				zoom : { value : 1.0,
-						 step : 0.1,
-						 min : 0.05,
-						 max : 6,
-						},  
-				rotate : { value : 0,
-						   step : 90
-						}
+				adsrc : null,
+				zoom : { 
+					value : 1.0,
+					step : 0.1,
+					min : 0.05,
+					max : 6
+				},  
+				rotate : { 
+					value : 0,
+					step : 90
+				},
+				controls : {
+					image : true,
+					sound : false
+				}
 			});
 			var curPos = { x : 0, y : 0};
 			var picPos = { x : 0, y : 0};
@@ -313,6 +387,18 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				picPos = { x : 0, y : 0};
 				applyTransform();
 			};
+
+			scope.play = function() {
+				if (scope.options.adsrc!=null) {
+					scope.options.adsrc.noteOn(0);
+				}
+			}
+
+			scope.stop = function() {
+				if (scope.options.adsrc!=null) {
+					scope.options.adsrc.noteOff(0);
+				}
+			}
 		}
 	};
 }]);	

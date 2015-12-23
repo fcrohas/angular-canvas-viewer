@@ -26,10 +26,12 @@
 <body ng-controller="MainController">
 	<div class="container-fluid max-height">
 		<div class="row row-height-1">
-			<div clas="col-md-12 row-height-1">
-				<span>Please select a supported image to upload  (PNG, JPG, TIF, PDF)</span>
+			<div class="col-md-2 row-height-1">
+			</div>
+			<div class="col-md-1O row-height-1">
+				<span>Please select a supported image to upload  (PNG, JPG, TIF, PDF, WAV, OGG)</span>
 			    <label class="fileUpload btn btn-primary btn-lg">
-			        <input type="file" class="upload" file-model="fileInput" accept="image/jpeg,image/png,image/tiff,image/tif,application/pdf"/>
+			        <input type="file" class="upload" file-model="fileInput" accept="image/jpeg,image/png,image/tiff,image/tif,application/pdf,audio/x-wav,audio/x-ogg"/>
 			        <span>Envoyer <i class="fa fa-upload"></i></span>
 			    </label>
 			</div>
