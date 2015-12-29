@@ -134,8 +134,11 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		"image/png" : { create : imageReader},
 		"image/jpeg" : { create : imageReader},
 		"audio/x-wav" : { create : wavReader},
+		"audio/wav" : { create : wavReader},
 		"audio/x-ogg" : { create : wavReader},
-		"audio/x-mpeg" : { create : mpegReader}
+		"audio/ogg" : { create : wavReader},
+		"audio/x-mpeg" : { create : mpegReader},
+		"audio/mpeg" : { create : mpegReader}
 	};
 
 	return {
@@ -228,7 +231,11 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// test if object or string is input of directive
 				if (typeof(value) === 'object') {
 					// Object type file
-					formatReader[value.type].create(value, scope.options);
+					if (formatReader[value.type] != undefined) {
+						formatReader[value.type].create(value, scope.options);
+					} else {
+						console.log(value.type,' not supported !');
+					}
 				} else if(typeof(value) === 'string') {
 					scope.options.imgObj.src = value;
 				}
@@ -345,47 +352,57 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			});
 
 			scope.zoomin = function() {
-				scope.options.zoom.value += scope.options.zoom.step;
-				if (scope.options.zoom.value >= scope.options.zoom.max) {
-					scope.options.zoom.value = scope.options.zoom.max;
-				}
-				applyTransform();
+				scope.$applyAsync(function() {
+					scope.options.zoom.value += scope.options.zoom.step;
+					if (scope.options.zoom.value >= scope.options.zoom.max) {
+						scope.options.zoom.value = scope.options.zoom.max;
+					}
+					applyTransform();
+				});				
 			};
 
 			scope.zoomout = function() {
-				scope.options.zoom.value -= scope.options.zoom.step;
-				if (scope.options.zoom.value <= scope.options.zoom.min) {
-					scope.options.zoom.value = scope.options.zoom.min;
-				}
-				applyTransform();
+				scope.$applyAsync(function() {
+					scope.options.zoom.value -= scope.options.zoom.step;
+					if (scope.options.zoom.value <= scope.options.zoom.min) {
+						scope.options.zoom.value = scope.options.zoom.min;
+					}
+					applyTransform();
+				});
 			};
 
 			scope.rotateleft = function() {
-				scope.options.rotate.value -= scope.options.rotate.step;
-				if (scope.options.rotate.value <= -360) {
-					scope.options.rotate.value = 0;
-				}
-				applyTransform();
+				scope.$applyAsync(function() {				
+					scope.options.rotate.value -= scope.options.rotate.step;
+					if (scope.options.rotate.value <= -360) {
+						scope.options.rotate.value = 0;
+					}
+					applyTransform();
+				});
 			};
 
 			scope.rotateright = function() {
-				scope.options.rotate.value += scope.options.rotate.step;
-				if (scope.options.rotate.value >= 360) {
-					scope.options.rotate.value = 0;
-				}
-				applyTransform();
+				scope.$applyAsync(function() {				
+					scope.options.rotate.value += scope.options.rotate.step;
+					if (scope.options.rotate.value >= 360) {
+						scope.options.rotate.value = 0;
+					}
+					applyTransform();
+				});
 			};
 
 			scope.fittopage = function() {
-				var options = scope.options;
-				if ((options.imgObj.height > options.imgObj.width) && (options.imgObj.height > ctx.canvas.height)) {
-					scope.options.zoom.value = ctx.canvas.height / options.imgObj.height;	
-				} else if (options.imgObj.width > ctx.canvas.width) {
-					scope.options.zoom.value = ctx.canvas.width / options.imgObj.width;	
-				}
-				curPos = { x : 0, y : 0};
-				picPos = { x : 0, y : 0};
-				applyTransform();
+				scope.$applyAsync(function() {					
+					var options = scope.options;
+					if ((options.imgObj.height > options.imgObj.width) && (options.imgObj.height > ctx.canvas.height)) {
+						scope.options.zoom.value = ctx.canvas.height / options.imgObj.height;	
+					} else if (options.imgObj.width > ctx.canvas.width) {
+						scope.options.zoom.value = ctx.canvas.width / options.imgObj.width;	
+					}
+					curPos = { x : 0, y : 0};
+					picPos = { x : 0, y : 0};
+					applyTransform();
+				});
 			};
 
 			scope.play = function() {

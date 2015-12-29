@@ -1,3 +1,3 @@
 angular.module('app.controller', []);
 
-angular.module('ImageViewerSample', ['app.controller', 'RaphaelViewer', 'CanvasViewer']);
+angular.module('ImageViewerSample', ['app.controller', 'CanvasViewer']);
