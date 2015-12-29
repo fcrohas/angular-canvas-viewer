@@ -64,5 +64,5 @@ gulp.task('deploy', function() {
    .pipe(gulp.dest('./gh-pages/assets/img'));    
 
    return run('git subtree push --prefix gh-pages origin gh-pages')
-    .pipe(gulp.dest('outlout.log');
+    .pipe(gulp.dest('outlout.log'));
 });
