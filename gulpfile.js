@@ -64,5 +64,5 @@ gulp.task('deploy', function() {
    .pipe(gulp.dest('./gh-pages/assets/img'));    
 
    return gulp.src('./gh-pages/**/*')
-    .pipe(ghPages());
+    .pipe(ghPages({branch:'origin/gh-pages'}));
 });
