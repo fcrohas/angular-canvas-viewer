@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html ng-app="ImageViewerSample" ng-strict-di>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Angular Image Viewer</title>
+	<!-- bower:css -->
+	<link rel="stylesheet" type="text/css" href="assets/lib/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap/dist/css/bootstrap-theme.min.css">
+	<!-- endbower -->
+	<link rel="stylesheet" href="dist/RaphaelViewer.css">
+	<link rel="stylesheet" href="assets/css/style.css">
+	<!-- bower:js -->
+	<script src="assets/lib/angular/angular.js" type="text/javascript" charset="utf-8"></script>
+	<script src="assets/lib/raphael/raphael.js" type="text/javascript" charset="utf-8"></script>
+	<script src="assets/lib/libtiff/tiff.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="assets/lib/pdfjs/pdf.compat.js" type="text/javascript" charset="utf-8"></script>
+	<script src="assets/lib/pdfjs/pdf.js" type="text/javascript" charset="utf-8"></script>
+	<!-- endbower -->
+	<script src="app/app.modules.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="dist/RaphaelViewer.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="dist/CanvasViewer.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="app/controller/app.controller.js" type="text/javascript" charset="utf-8"></script>	
+</head>
+<body ng-controller="MainController">
+	<div class="container-fluid max-height">
+		<div class="row row-height-1">
+			<div class="col-md-2 row-height-1">
+			</div>
+			<div class="col-md-1O row-height-1">
+				<span>Please select a supported image to upload  (PNG, JPG, TIF, PDF, WAV, OGG)</span>
+			    <label class="fileUpload btn btn-primary btn-lg">
+			        <input type="file" class="upload" file-model="fileInput" accept="image/jpeg,image/png,image/tiff,image/tif,application/pdf,audio/x-wav,audio/x-ogg"/>
+			        <span>Envoyer <i class="fa fa-upload"></i></span>
+			    </label>
+			</div>
+		</div>
+		<div class="row row-height-9">
+			<div class="col-md-2 row-height-9">
+				<div class="form-group">
+					<label for="zoomValue">Zoom</label>
+					<input name="zoomValue" class="form-control" type="number" ng-model="options.zoom.value" />
+				</div>
+				<div class="form-group">
+					<label for="zoomStep">Zoom step</label>
+					<input name="zoomStep" class="form-control" type="number" ng-model="options.zoom.step" />
+				</div>
+				<div class="form-group">
+					<label for="rotateValue">Rotation angle</label>
+					<input name="rotateValue" class="form-control" type="number" ng-model="options.rotate.value" />
+				</div>
+				<div class="form-group">
+					<label for="rotateStep">Rotation angle step</label>
+					<input name="rotateStep" class="form-control" type="number" ng-model="options.rotate.step" />
+				</div>
+			</div>
+			<div class="col-md-10 row-height-9">
+				<canvas-viewer src="fileInput" title="This is a test HTML5 Canvas" overlays="overlays" options="options"></canvas-viewer>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
