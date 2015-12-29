@@ -3,7 +3,7 @@ var gulp = require('gulp')
 , minifyCss = require("gulp-minify-css")
 , uglify = require("gulp-uglify")
 , concat = require("gulp-concat")
-, run = require('gulp-run');
+, deploy = require('gulp-gh-pages');
  
 
 // task for js
@@ -63,6 +63,6 @@ gulp.task('deploy', function() {
    gulp.src('./assets/img/billet_specimen_securite2.jpg')
    .pipe(gulp.dest('./gh-pages/assets/img'));    
 
-   return run('git subtree push --prefix gh-pages origin origin/gh-pages')
-    .pipe(gulp.dest('outlout.log'));
+   return gulp.src(['./gh-pages/**/*'])
+    .pipe(deploy());
 });
