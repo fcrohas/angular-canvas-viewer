@@ -30,13 +30,14 @@ You need  `npm` package manager :
 
 ```html
 <canvas-viewer src="test.jpg" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
-
+```
 > `title` and `overlays` are optional.
 
 `overlays` is an `Array Of Object`  like :
 
 ```javascript
 $scope.overlays = [{x : 50, y:155, w:106, h:29, color:'#00FF00'}];
+```
 
 `options` is an `Object` as follow :
 
@@ -66,3 +67,4 @@ var options = {
 			value : 90
 		}
 	};
+```
