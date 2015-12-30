@@ -51,6 +51,7 @@ rotate | value | Read or write the rotation angle of picture (By default : 0)
 rotate | step | Set the rotation angle increment
 controls | image | Boolean to show/hide pictures controls button
 controls | sound | Boolean to show/hide sound controls button
+controls | fit | Possible values are `page` , `height` or `width`
 imgObj | | The Current Javascript `Image` object displayed ( Only for pictures )
 adsrc | | The Current `AudioContext` object ( Only for sound)
 ctx | | The Current `CanvasContext` object ( Only for sound)
