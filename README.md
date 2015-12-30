@@ -4,7 +4,7 @@ This is a picture and sound viewer directive for AngularJS
 
 ## Demo
 
-A sample demo is available [here](http://fcrohas.github.io/angular-raphael-viewer).
+A sample demo is available [here](http://fcrohas.github.io/angular-canvas-viewer).
 
 ## Prerequisites
 
