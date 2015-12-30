@@ -41,19 +41,19 @@ $scope.overlays = [{x : 50, y:155, w:106, h:29, color:'#00FF00'}];
 
 `options` is an `Object` as follow :
 
- ||Name|Properties|Definition|
- ||-|-|-|
- || zoom | value | Read or write the zoom factor (By default : 1.0) |
- || zoom | step | Set the zoom factor increment |
- || zoom | min | Minimum zoom factor allowed |
- || zoom | max | Maximum zoom factor allowed |
- || rotate | value | Read or write the rotation angle of picture (By default : 0) |
- || rotate | step | Set the rotation angle increment |
- || controls | image | Boolean to show/hide pictures controls button |
- || controls | sound | Boolean to show/hide sound controls button |
- || imgObj | | The Current Javascript `Image` object displayed ( Only for pictures )|
- || adsrc | | The Current `AudioContext` object ( Only for sound) |
- || ctx | | The Current `CanvasContext` object ( Only for sound) |
+Name | Properties | Definition
+---- | ---------- | ----------
+zoom | value | Read or write the zoom factor (By default : 1.0)
+zoom | step | Set the zoom factor increment
+zoom | min | Minimum zoom factor allowed
+zoom | max | Maximum zoom factor allowed
+rotate | value | Read or write the rotation angle of picture (By default : 0)
+rotate | step | Set the rotation angle increment
+controls | image | Boolean to show/hide pictures controls button
+controls | sound | Boolean to show/hide sound controls button
+imgObj | | The Current Javascript `Image` object displayed ( Only for pictures )
+adsrc | | The Current `AudioContext` object ( Only for sound)
+ctx | | The Current `CanvasContext` object ( Only for sound)
 
 Sample `options` object :
 
