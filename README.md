@@ -4,7 +4,7 @@ This is a picture and sound viewer directive for AngularJS
 
 ## Demo
 
-> A sample demo is available [here](http://fcrohas.github.io/angular-raphael-viewer).
+A sample demo is available [here](http://fcrohas.github.io/angular-raphael-viewer).
 
 ## Prerequisites
 
@@ -28,20 +28,20 @@ You need  `npm` package manager :
 
  The directive usage is as follow, `src` can be either a `string` or a `File` object :
 
-	```HTML5
+	```HTML
 	<canvas-viewer src="test.jpg" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
 
 > title and overlays are optional.
 
  `overlays` is an `Array Of Object`  like :
 
-	```Javascript
+	```JavaScript
 	$scope.overlays = [{x : 50, y:155, w:106, h:29, color:'#00FF00'}];
 
  `options` is an `Object` as follow :
 
  | Name | Properties | Definition |
- -------|------------|------------|
+ |-------|------------|------------|
  | zoom | value | Read or write the zoom factor (By default : 1.0) |
  | zoom | step | Set the zoom factor increment |
  | zoom | min | Minimum zoom factor allowed |
@@ -56,7 +56,7 @@ You need  `npm` package manager :
 
  Sample `options` object :
 
- 		````Javascript
+    ```JavaScript
     var options = {
 			zoom : {
 				value : 0.5,
