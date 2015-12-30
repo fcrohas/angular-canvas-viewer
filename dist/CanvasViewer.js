@@ -91,8 +91,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					var javascriptNode = adctx.createScriptProcessor(2048, 1, 1);
 					var source = adctx.createBufferSource();
 					options.adsrc = source;
-					// tell the source which sound to play 
-					source.buffer = buffer; 
+					// tell the source which sound to play
+					source.buffer = buffer;
 					// setup a analyzer
 					var analyser = adctx.createAnalyser();
 					analyser.smoothingTimeConstant = 0.3;
@@ -114,13 +114,13 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					        var value = array[i];
 					        ctx.fillRect(i*5,325-value,3,325);
 					    }
-					}				
+					}
 					// connect to destination, else it isn't called
-					javascriptNode.connect(adctx.destination);			
+					javascriptNode.connect(adctx.destination);
 					// connect the source to the context's destination (the speakers)
-					source.connect(adctx.destination); 
+					source.connect(adctx.destination);
 					source.start(0);
-				}); 			
+				});
 			};
 			this.reader.readAsArrayBuffer(data);
 		}
@@ -154,10 +154,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		// controller: function($scope, $element, $attrs, $transclude) {},
 		// require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
 		restrict: 'E', // E = Element, A = Attribute, C = Class, M = Comment
-		template: '<div class="viewer-container"><canvas class="viewer" '+ 
-				'ng-mouseleave="canMove=false"'+ 
-				'ng-mousedown="mousedown($event)"'+ 
-				'ng-mouseup="mouseup($event)"'+ 
+		template: '<div class="viewer-container"><canvas class="viewer" '+
+				'ng-mouseleave="canMove=false"'+
+				'ng-mousedown="mousedown($event)"'+
+				'ng-mouseup="mouseup($event)"'+
 				'ng-init="canMove=false"'+
 				'ng-mousemove="mousedrag($event,canMove)">'+
 				'</canvas>'+
@@ -179,7 +179,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		link: function(scope, iElm, iAttrs, controller) {
 			var	canvasEl = iElm.find('canvas')[0];
 			var ctx = canvasEl.getContext('2d');
-			// look for 
+			// look for
 			var inNode = angular.element(iElm.find('div')[0])[0];
 			directiveParentNode = inNode.parentNode.parentNode;
 			// orce correct canvas size
@@ -191,16 +191,16 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			// initialize variable
 			var img = null;
 			angular.extend(scope.options, {
-				imgObj : null, 
-				ctx : ctx, 
+				imgObj : null,
+				ctx : ctx,
 				adsrc : null,
-				zoom : { 
+				zoom : {
 					value : 1.0,
 					step : 0.1,
 					min : 0.05,
 					max : 6
-				},  
-				rotate : { 
+				},
+				rotate : {
 					value : 0,
 					step : 90
 				},
@@ -227,7 +227,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				scope.options.imgObj.onload = function() {
 					applyTransform();
 				};
-				
+
 				// test if object or string is input of directive
 				if (typeof(value) === 'object') {
 					// Object type file
@@ -247,7 +247,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					return;
 
 				// new added
-				overlays = [];				
+				overlays = [];
 				angular.forEach(newarr, function(item) {
 					overlays.push(item);
 				});
@@ -265,7 +265,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 
 			// Bind mousewheel
 			angular.element(canvasEl).bind("DOMMouseScroll mousewheel onmousewheel", function($event) {
-                   
+
                 // cross-browser wheel delta
                 var event = window.event || $event; // old IE support
                 var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
@@ -279,7 +279,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
                 event.returnValue = false;
                 // for Chrome and Firefox
                 if(event.preventDefault) {
-                    event.preventDefault();                        
+                    event.preventDefault();
                 }
 
             });
@@ -296,13 +296,13 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// move to mouse position
 				ctx.translate((picPos.x + centerX), (picPos.y + centerY)  );
 				// Rotate canvas
-				ctx.rotate( options.rotate.value * Math.PI/180);			   
+				ctx.rotate( options.rotate.value * Math.PI/180);
 				// Change scale
 				ctx.scale( options.zoom.value , options.zoom.value);
 				// Draw image at correct position with correct scale
-				ctx.drawImage(options.imgObj, -centerX , -centerY , options.imgObj.width , options.imgObj.height); 
+				ctx.drawImage(options.imgObj, -centerX , -centerY , options.imgObj.width , options.imgObj.height);
 				// Restore
-			    ctx.restore();
+			  ctx.restore();
 
 				// Draw overlays
 				if (overlays.length >0) {
@@ -311,7 +311,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						// move to mouse position
 						ctx.translate((picPos.x + centerX) , (picPos.y + centerY));
 						// Rotate canvas
-						ctx.rotate( options.rotate.value * Math.PI/180);			   
+						ctx.rotate( options.rotate.value * Math.PI/180);
 						// Change scale
 						ctx.scale( options.zoom.value , options.zoom.value);
 						// Start rect draw
@@ -321,7 +321,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						ctx.fill();
 						ctx.lineWidth = 1;
 						ctx.strokeStyle = 'rgb(255,0,128)';
-						ctx.stroke();						
+						ctx.stroke();
 					    ctx.restore();
 					});
 				}
@@ -342,7 +342,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						var coordX = $event.offsetX;
 						var coordY = $event.offsetY;
 						var translateX = coordX - curPos.x;
-						var translateY = coordY - curPos.y; 
+						var translateY = coordY - curPos.y;
 						picPos.x += translateX;
 						picPos.y += translateY;
 						applyTransform();
@@ -358,7 +358,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						scope.options.zoom.value = scope.options.zoom.max;
 					}
 					applyTransform();
-				});				
+				});
 			};
 
 			scope.zoomout = function() {
@@ -372,7 +372,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			};
 
 			scope.rotateleft = function() {
-				scope.$applyAsync(function() {				
+				scope.$applyAsync(function() {
 					scope.options.rotate.value -= scope.options.rotate.step;
 					if (scope.options.rotate.value <= -360) {
 						scope.options.rotate.value = 0;
@@ -382,7 +382,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			};
 
 			scope.rotateright = function() {
-				scope.$applyAsync(function() {				
+				scope.$applyAsync(function() {
 					scope.options.rotate.value += scope.options.rotate.step;
 					if (scope.options.rotate.value >= 360) {
 						scope.options.rotate.value = 0;
@@ -392,12 +392,12 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			};
 
 			scope.fittopage = function() {
-				scope.$applyAsync(function() {					
+				scope.$applyAsync(function() {
 					var options = scope.options;
 					if ((options.imgObj.height > options.imgObj.width) && (options.imgObj.height > ctx.canvas.height)) {
-						scope.options.zoom.value = ctx.canvas.height / options.imgObj.height;	
+						scope.options.zoom.value = ctx.canvas.height / options.imgObj.height;
 					} else if (options.imgObj.width > ctx.canvas.width) {
-						scope.options.zoom.value = ctx.canvas.width / options.imgObj.width;	
+						scope.options.zoom.value = ctx.canvas.width / options.imgObj.width;
 					}
 					curPos = { x : 0, y : 0};
 					picPos = { x : 0, y : 0};
@@ -418,4 +418,4 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			}
 		}
 	};
-}]);	
+}]);
