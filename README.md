@@ -28,20 +28,20 @@ You need  `npm` package manager :
 
  The directive usage is as follow, `src` can be either a `string` or a `File` object :
 
-	```HTML
-	<canvas-viewer src="test.jpg" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
+```html
+<canvas-viewer src="test.jpg" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
 
-> title and overlays are optional.
+> `title` and `overlays` are optional.
 
- `overlays` is an `Array Of Object`  like :
+`overlays` is an `Array Of Object`  like :
 
-	```JavaScript
-	$scope.overlays = [{x : 50, y:155, w:106, h:29, color:'#00FF00'}];
+```javascript
+$scope.overlays = [{x : 50, y:155, w:106, h:29, color:'#00FF00'}];
 
- `options` is an `Object` as follow :
+`options` is an `Object` as follow :
 
  | Name | Properties | Definition |
- |-------|------------|------------|
+ | ------- | ------------ | ------------ |
  | zoom | value | Read or write the zoom factor (By default : 1.0) |
  | zoom | step | Set the zoom factor increment |
  | zoom | min | Minimum zoom factor allowed |
@@ -54,15 +54,15 @@ You need  `npm` package manager :
  | adsrc | | The Current `AudioContext` object ( Only for sound) |
  | ctx | | The Current `CanvasContext` object ( Only for sound) |
 
- Sample `options` object :
+Sample `options` object :
 
-    ```JavaScript
-    var options = {
-			zoom : {
-				value : 0.5,
-				step : 0.01
-			},
-			rotate : {
-				value : 90
-			}
+```javascript
+var options = {
+		zoom : {
+			value : 0.5,
+			step : 0.01
+		},
+		rotate : {
+			value : 90
 		}
+	};
