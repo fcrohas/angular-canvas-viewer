@@ -26,10 +26,18 @@ You need  `npm` package manager :
 
 ## How to use it
 
- The directive usage is as follow, `src` can be either a `string` or a `File` object :
+ The directive usage is as follow ( CanvasViewer.min.worker.js must be in same folder that CanvasViewer.min.js but not in `script` tag ), `src` can be either a `string` or a `File` object :
 
 ```html
-<canvas-viewer src="test.jpg" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
+<html>
+	<head>
+		<link rel="stylesheet" href="dist/CanvasViewer.min.css">
+		<script src="dist/CanvasViewer.min.js" type="text/javascript" charset="utf-8"></script>	
+	</head>
+	<body>
+		<canvas-viewer src="test.jpg" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
+	</body>
+</script>
 ```
 > `title` and `overlays` are optional.
 
