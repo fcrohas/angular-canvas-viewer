@@ -151,7 +151,11 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			title : '@title',
 			options : '=options'
 		}, // {} = isolate, true = child, false/undefined = no change
-		// controller: function($scope, $element, $attrs, $transclude) {},
+		// controller: ['$scope', '$element', '$attrs', '$transclude' ,function(scope, $element, $attrs, $transclude) {
+		// 	console.log('la',scope.options);
+		// 	console.log(scope.options);
+
+		// }],
 		// require: 'ngModel', // Array = multiple requires, ? = optional, ^ = check parent elements
 		restrict: 'E', // E = Element, A = Attribute, C = Class, M = Comment
 		template: '<div class="viewer-container"><canvas class="viewer" '+
@@ -190,7 +194,12 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			ctx.canvas.style.height = canvasSize.clientHeight;
 			// initialize variable
 			var img = null;
-			angular.extend(scope.options, {
+			var curPos = { x : 0, y : 0};
+			var picPos = { x : 0, y : 0};
+			var overlays = [];
+			var reader = null;
+			// Merge scope with default values
+			scope.options = angular.extend({}, {
 				imgObj : null,
 				ctx : ctx,
 				adsrc : null,
@@ -209,11 +218,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					sound : false,
 					fit : 'page'
 				}
-			});
-			var curPos = { x : 0, y : 0};
-			var picPos = { x : 0, y : 0};
-			var overlays = [];
-			var reader = null;
+			}, scope.options );
 
 			scope.$watch('imageSource', function(value) {
 				if (value === undefined || value === null)
@@ -437,7 +442,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					curPos = { x : 0, y : 0};
 					picPos = { x : 0, y : 0};
 					// Update options state
-					scope.options.controls.fit = 'page';
+					scope.options.controls.fit = 'height';
 					applyTransform();
 				});
 			};
@@ -450,7 +455,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					curPos = { x : 0, y : 0};
 					picPos = { x : 0, y : 0};
 					// Update options state
-					scope.options.controls.fit = 'page';
+					scope.options.controls.fit = 'width';
 					applyTransform();
 				});
 			};

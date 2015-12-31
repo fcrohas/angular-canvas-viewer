@@ -56,7 +56,7 @@ imgObj | | The Current Javascript `Image` object displayed ( Only for pictures )
 adsrc | | The Current `AudioContext` object ( Only for sound)
 ctx | | The Current `CanvasContext` object ( Only for sound)
 
-Sample `options` object :
+Sample `options` object with initial value or simple empty object `{}`:
 
 ```javascript
 var options = {
