@@ -37,7 +37,7 @@ You need  `npm` package manager :
 	<body>
 		<canvas-viewer src="test.jpg" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
 	</body>
-</script>
+</html>
 ```
 > `title` and `overlays` are optional.
 
