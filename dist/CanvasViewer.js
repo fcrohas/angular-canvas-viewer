@@ -1,7 +1,9 @@
 angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http', function($window, $http){
 	function switchCommand(options, image, sound) {
-		options.controls.image = image;
-		options.controls.sound = sound;
+		if (options.controls.toolbar) {
+			options.controls.image = image;
+			options.controls.sound = sound;
+		}
 	}
 
 	function pdfReader(data, options) {

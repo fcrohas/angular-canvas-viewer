@@ -3,10 +3,13 @@
 *
 * Description
 */
-angular.module('app.controller').controller('MainController', ['$scope', function($scope){
-	$scope.fileInput = "assets/img/billet_specimen_securite2.jpg";
+angular.module('app.controller').controller('MainController', ['$scope', '$http', function($scope,$http){
+    $scope.fileInput = '';
+    $http.get("assets/img/billet_specimen_securite2.jpg", { responseType : 'blob'}).then(function(resp) {
+	   $scope.fileInput = resp.data;
+    });
 	$scope.overlays = [{x : 50, y:155, w:106, h:29, color:'#00FF00'}];
-    $scope.options = {};
+    $scope.options = { controls : { toolbar : true} };
 }]).directive('fileModel', ['$parse', function ($parse) {
     return {
         restrict: 'A',

@@ -57,6 +57,7 @@ zoom | min | Minimum zoom factor allowed
 zoom | max | Maximum zoom factor allowed
 rotate | value | Read or write the rotation angle of picture (By default : 0)
 rotate | step | Set the rotation angle increment
+controls | toolbar | Boolean to show/hide toolbar controls button
 controls | image | Boolean to show/hide pictures controls button
 controls | sound | Boolean to show/hide sound controls button
 controls | fit | Possible values are `page` , `height` or `width`
