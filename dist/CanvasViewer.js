@@ -11,9 +11,14 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		this.reader = new FileReader();
 		// read image object
 		var that = this;
+		that._pdfDoc = null;
 		that.viewport = null;
 		that.imgObj = options.imgObj;
 		this.refresh = function() {
+				if (that._pdfDoc == null) {
+					return;
+				}
+
 				that._pdfDoc.getPage(options.controls.numPage).then(function(page) {
 					that.viewport = page.getViewport( options.zoom.value, options.rotate.value);
 					// save canvas size before rendering
@@ -57,8 +62,13 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		switchCommand( options, true, false);
 		this.reader = new FileReader();
 		var that = this;
+		that.tiff = null;
 		that.imgObj = options.imgObj;
 		this.refresh = function() {
+			if (that.tiff == null) {
+				return;
+			}
+			
 			// Limit page number if upper
 			if (options.controls.numPage > that.tiff.countDirectory()) {
 				options.controls.numPage = that.tiff.countDirectory();
