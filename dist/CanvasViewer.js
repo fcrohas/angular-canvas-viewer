@@ -6,42 +6,62 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		}
 	}
 
-	function pdfReader(data, options) {
+	function pdfReader(data, options, callback) {
 		switchCommand( options, true, false);
 		this.reader = new FileReader();
 		// read image object
 		var that = this;
+		var canvas = document.createElement('canvas');
+		var context = canvas.getContext('2d');
+		// save canvas size before rendering
+		var canvasWidth = canvas.width;
+		var canvasHeight = canvas.height;
+
 		that._pdfDoc = null;
 		that.viewport = null;
-		that.imgObj = options.imgObj;
+		that.img = new Image();
+		that.rendered = false;
+		that.width = -1;
+		that.height = -1;
+		that.data = null;
+		that.page = null;
+		that.options = options;
+		that.currentPage = -1;
+
+		function renderPage(parent) {
+			if (parent.page != null) {
+				parent.viewport = parent.page.getViewport( parent.options.zoom.value, 0);
+				// set viewport
+				canvas.width = parent.viewport.width;
+				canvas.height = parent.viewport.height;
+				// render to canvas
+				parent.page.render({canvasContext : context, viewport : parent.viewport, intent : 'display'}).then( function() {
+					// restore canvas
+					parent.img.onload = function() {
+						parent.width = parent.img.width;
+						parent.height = parent.img.height;
+						callback();
+						parent.rendered = true;
+					};
+					parent.img.src = canvas.toDataURL();
+				});
+			}
+		}
+
 		this.refresh = function() {
 				if (that._pdfDoc == null) {
 					return;
 				}
 
-				that._pdfDoc.getPage(options.controls.numPage).then(function(page) {
-					that.viewport = page.getViewport( options.zoom.value, options.rotate.value);
-					// save canvas size before rendering
-					var canvasWidth = options.ctx.canvas.width;
-					var canvasHeight = options.ctx.canvas.height;
-					// set viewport
-					options.ctx.canvas.width = that.viewport.width;
-					options.ctx.canvas.height = that.viewport.height;
-					// render to canvas
-					page.render({canvasContext : options.ctx, viewport : that.viewport, intent : 'print'}).then( function() {
-						that.imgObj.width = that.viewport.width;
-						that.imgObj.height = that.viewport.height;
-						that.imgObj.src = options.ctx.canvas.toDataURL();
-						// restore canvas
-						options.ctx.canvas.width = canvasWidth;
-						options.ctx.canvas.height = canvasHeight;
-					});
-				});
-				that._pdfDoc.getMetadata().then(function(data) {
-					options.info = data.info;
-					options.info.metadata = data.metadata;
-				});				
-
+				if (that.currentPage != that.options.controls.numPage) {
+					that._pdfDoc.getPage(that.options.controls.numPage).then(function(page) {
+						that.page = page;
+						renderPage(that);
+						that.currentPage = that.options.controls.numPage;
+					});	
+				} else {
+					renderPage(that);
+				}
 		};
 
 		this.reader.onload = function() {
@@ -50,6 +70,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				that._pdfDoc = _pdfDoc;
 				options.controls.totalPage = _pdfDoc.numPages;
 				options.controls.numPage = 1;
+				that._pdfDoc.getMetadata().then(function(data) {
+					options.info = data.info;
+					options.info.metadata = data.metadata;
+				});				
 				that.refresh();
 			});
 		};
@@ -58,59 +82,92 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		return this;
 	}
 
-	function tiffReader(data, options) {
+	function tiffReader(data, options, callback) {
 		switchCommand( options, true, false);
 		this.reader = new FileReader();
 		var that = this;
+		that.rendered = false;
 		that.tiff = null;
-		that.imgObj = options.imgObj;
+		that.img = new Image();
+		that.img.onload = function() {
+			callback();
+			that.rendered = true;
+		}
+		that.data = null;
+		that.width = -1;
+		that.height = -1;
+		that.options = options;	
+		that.currentPage = -1;	
 		this.refresh = function() {
 			if (that.tiff == null) {
-				return;
+				that.tiff = new Tiff( {buffer : that.reader.result});
+				that.options.controls.totalPage = that.tiff.countDirectory();
+				that.options.controls.numPage = 1;
+				that.options.info = {
+					width : that.tiff.width(),
+					height : that.tiff.height(),
+					compression : that.tiff.getField(Tiff.Tag.COMPRESSION),
+					document : that.tiff.getField(Tiff.Tag.DOCUMENTNAME),
+					description : that.tiff.getField(Tiff.Tag.IMAGEDESCRIPTION),
+					orientation : that.tiff.getField(Tiff.Tag.ORIENTATION),
+					xresolution : that.tiff.getField(Tiff.Tag.XRESOLUTION),
+					yresolution : that.tiff.getField(Tiff.Tag.YRESOLUTION)
+
+				};
 			}
-			
+
 			// Limit page number if upper
-			if (options.controls.numPage > that.tiff.countDirectory()) {
-				options.controls.numPage = that.tiff.countDirectory();
+			if (that.options.controls.numPage > that.options.controls.totalPage) {
+				that.options.controls.numPage = that.options.controls.totalPage;
 			}
 			// Set to correct page
-			that.tiff.setDirectory(options.controls.numPage);
-			that.imgObj.width = that.tiff.width();
-			that.imgObj.height = that.tiff.height();
-			that.imgObj.src = that.tiff.toDataURL();
-			options.info = {
-				width : that.tiff.getField(Tiff.Tag.IMAGEWIDTH),
-				height : that.tiff.getField(Tiff.Tag.IMAGELENGTH),
-				compression : that.tiff.getField(Tiff.Tag.COMPRESSION),
-				document : that.tiff.getField(Tiff.Tag.DOCUMENTNAME),
-				description : that.tiff.getField(Tiff.Tag.IMAGEDESCRIPTION),
-				orientation : that.tiff.getField(Tiff.Tag.ORIENTATION),
-				resolution : that.tiff.getField(Tiff.Tag.XRESOLUTION)
-
-			};
+			if (that.currentPage != that.options.controls.numPage) {
+				that.tiff.setDirectory(that.options.controls.numPage);
+				that.width = that.tiff.width();
+				that.height = that.tiff.height();
+				//that.data = new Uint8Array(that.tiff.readRGBAImage());			
+				that.img.src = that.tiff.toDataURL();
+				that.currentPage = that.options.controls.numPage;
+			}
 		};
 
 		this.reader.onload = function() {
+			if (that.tiff != null) {
+				that.tiff.close();
+				that.tiff = null; 
+			}
 			Tiff.initialize({TOTAL_MEMORY:16777216*10});
-			that.tiff = new Tiff( {buffer : that.reader.result});
-			options.controls.totalPage = that.tiff.countDirectory();
-			options.controls.numPage = 1;
 			that.refresh();
-
+			callback();			
+			that.rendered = true;			
 		};
 		this.reader.readAsArrayBuffer(data);
 		return this;
 	}
 
-	function imageReader(data, options) {
+	function imageReader(data, options, callback) {
 		switchCommand( options, true, false);
 		this.reader = new FileReader();
 		var that = this;
-		that.imgObj = options.imgObj;
+		that.img = new Image();
+		that.img.onload = function() {
+			that.width = that.img.width;
+			that.height = that.img.height;
+			callback();	
+			that.rendered = true;
+		}	
+		that.data = null;
+		that.width = -1;
+		that.height = -1;
+		options.info = {};
 		this.reader.onload = function() {
-			that.imgObj.src = that.reader.result;
+			that.img.src = that.reader.result;
 		};
-		this.reader.readAsDataURL(data);
+		if (typeof(data) === 'string') {
+			that.img.src = data;
+		} else {
+			this.reader.readAsDataURL(data);
+		}
 		// PNG or JPEG are one page only
 		options.controls.totalPage = 1;
 		options.controls.numPage = 1;
@@ -120,11 +177,11 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		return this;
 	}
 
-	function mpegReader(data, options) {
+	function mpegReader(data, options, callback) {
 
 	}
 
-	function wavReader(data, options) {
+	function wavReader(data, options, callback) {
 		switchCommand( options, false, true);
 		this.reader = new FileReader();
 		var that = this;
@@ -222,9 +279,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				'</canvas>'+
 				'<div class="title" ng-if="title!=null">{{title}}</div>'+
 				'<div class="command" ng-if="options.controls.image">'+
-				'<div class="btn btn-info" ng-click="options.controls.numPage=options.controls.numPage-1" ng-hide="options.controls.numPage==options.controls.totalPage"><i class="fa fa-minus"></i></div>'+
-				'<div class="btn btn-info" ng-hide="options.controls.numPage==options.controls.totalPage">{{options.controls.numPage}}/{{options.controls.totalPage}}</div>'+
-				'<div class="btn btn-info" ng-click="options.controls.numPage=options.controls.numPage+1" ng-hide="options.controls.numPage==options.controls.totalPage"><i class="fa fa-plus"></i></div>'+				
+				'<div class="btn btn-info" ng-click="options.controls.numPage=options.controls.numPage-1" ng-hide="options.controls.totalPage==1"><i class="fa fa-minus"></i></div>'+
+				'<div class="btn btn-info" ng-hide="options.controls.totalPage==1">{{options.controls.numPage}}/{{options.controls.totalPage}}</div>'+
+				'<div class="btn btn-info" ng-click="options.controls.numPage=options.controls.numPage+1" ng-hide="options.controls.totalPage==1"><i class="fa fa-plus"></i></div>'+				
 				'<div class="btn btn-info" ng-click="fittopage()"><i class="fa fa-file-o"></i></div>'+
 				'<div class="btn btn-info" ng-click="rotateleft()" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-left"></i></div>'+
 				'<div class="btn btn-info" ng-click="rotateright()" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-right"></i></div>'+
@@ -287,21 +344,24 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 
 			scope.options.ctx = ctx;
 
+			function onload() {
+				if (reader == null) {
+					return;
+				}
+				applyTransform();
+				if (!reader.rendered) {
+					resizeTo(scope.options.controls.fit);
+				}
+			}
+
 			scope.$watch('imageSource', function(value) {
 				if (value === undefined || value === null)
 					return;
-				scope.options.imgObj = new Image();
 				// initialize values on load
 				scope.options.zoom.value = 1.0;
 				scope.options.rotate.value = 0;
 				curPos = { x : 0, y : 0};
 				picPos = { x : 0, y : 0};
-
-				// start once image object is loaded
-				scope.options.imgObj.onload = function() {
-					applyTransform();
-					resizeTo(scope.options.controls.fit);
-				};
 
 				// test if object or string is input of directive
 				if (typeof(value) === 'object') {
@@ -310,12 +370,12 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						// get object
 						var decoder = formatReader[value.type];
 						// Create image
-						reader = decoder.create(value, scope.options);
+						reader = decoder.create(value, scope.options, onload);
 					} else {
 						console.log(value.type,' not supported !');
 					}
 				} else if(typeof(value) === 'string') {
-					scope.options.imgObj.src = value;
+					reader = formatReader["image/jpeg"].create(value, scope.options, onload);
 				}
 			});
 
@@ -386,10 +446,14 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			}
 
 			function applyTransform() {
+				if (reader == null) {
+					return;
+				}
+
 				var options = scope.options;
 				var canvas = ctx.canvas ;
-				var centerX = options.imgObj.width * options.zoom.value/2;
-				var centerY = options.imgObj.height * options.zoom.value/2;
+				var centerX = reader.width * options.zoom.value/2;
+				var centerY = reader.height * options.zoom.value/2;
 				// Clean before draw
 				ctx.clearRect(0,0,canvas.width, canvas.height);
 				// Save context
@@ -403,7 +467,14 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// Change scale
 				ctx.scale( options.zoom.value , options.zoom.value);
 				// Draw image at correct position with correct scale
-				ctx.drawImage(options.imgObj, 0 , 0 , options.imgObj.width , options.imgObj.height);
+				if (reader.data != null) {
+					var imageData = ctx.createImageData(reader.width, reader.height);
+    				imageData.data.set(reader.data);
+    				ctx.putImageData(imageData, 0, 0);					
+				} 
+				if (reader.img != null) {
+					ctx.drawImage(reader.img, 0 , 0 , reader.width , reader.height);
+				}
 				// Restore
 				ctx.restore();
 
@@ -456,7 +527,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					return;
 				}
 
-				if ((scope.options.imgObj !== null) && (scope.canMove)) {
+				if ((reader !== null) && (scope.canMove)) {
 						var coordX = $event.offsetX;
 						var coordY = $event.offsetY;
 						var translateX = coordX - curPos.x;
@@ -475,6 +546,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					if (scope.options.zoom.value >= scope.options.zoom.max) {
 						scope.options.zoom.value = scope.options.zoom.max;
 					}
+					reader.refresh();
 					applyTransform();
 				});
 			};
@@ -485,6 +557,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					if (scope.options.zoom.value <= scope.options.zoom.min) {
 						scope.options.zoom.value = scope.options.zoom.min;
 					}
+					reader.refresh();
 					applyTransform();
 				});
 			};
@@ -512,8 +585,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			scope.fittopage = function() {
 				scope.$applyAsync(function() {
 					var options = scope.options;
-					var ratioH = ctx.canvas.height / options.imgObj.height;
-					var ratioW = ctx.canvas.width / options.imgObj.width;
+					var ratioH = ctx.canvas.height / reader.height;
+					var ratioW = ctx.canvas.width / reader.width;
 					scope.options.zoom.value = Math.min(ratioH,ratioW);
 					curPos = { x : 0, y : 0};
 					picPos = { x : 0, y : 0};
@@ -526,7 +599,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			scope.fittoheight = function() {
 				scope.$applyAsync(function() {
 					var options = scope.options;
-					var ratioH = ctx.canvas.height / options.imgObj.height;
+					var ratioH = ctx.canvas.height / reader.height;
 					scope.options.zoom.value = ratioH;
 					curPos = { x : 0, y : 0};
 					picPos = { x : 0, y : 0};
@@ -539,7 +612,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			scope.fittowidth = function() {
 				scope.$applyAsync(function() {
 					var options = scope.options;
-					var ratioW = ctx.canvas.width / options.imgObj.width;
+					var ratioW = ctx.canvas.width / reader.width;
 					scope.options.zoom.value = ratioW;
 					curPos = { x : 0, y : 0};
 					picPos = { x : 0, y : 0};
