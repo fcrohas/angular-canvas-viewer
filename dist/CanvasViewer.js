@@ -13,10 +13,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		var that = this;
 		that.viewport = null;
 		that.imgObj = options.imgObj;
-		this.reader.onload = function() {
-			var data = new Uint8Array(that.reader.result);
-			PDFJS.getDocument({data : data}).then(function(_pdfDoc) {
-				_pdfDoc.getPage(1).then(function(page) {
+		this.refresh = function() {
+				that._pdfDoc.getPage(options.controls.numPage).then(function(page) {
 					that.viewport = page.getViewport( options.zoom.value, options.rotate.value);
 					// save canvas size before rendering
 					var canvasWidth = options.ctx.canvas.width;
@@ -34,10 +32,25 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						options.ctx.canvas.height = canvasHeight;
 					});
 				});
+				that._pdfDoc.getMetadata().then(function(data) {
+					options.info = data.info;
+					options.info.metadata = data.metadata;
+				});				
+
+		};
+
+		this.reader.onload = function() {
+			var data = new Uint8Array(that.reader.result);
+			PDFJS.getDocument({data : data}).then(function(_pdfDoc) {
+				that._pdfDoc = _pdfDoc;
+				options.controls.totalPage = _pdfDoc.numPages;
+				options.controls.numPage = 1;
+				that.refresh();
 			});
 		};
+
 		this.reader.readAsArrayBuffer(data);
-		return this.reader;
+		return this;
 	}
 
 	function tiffReader(data, options) {
@@ -45,15 +58,38 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		this.reader = new FileReader();
 		var that = this;
 		that.imgObj = options.imgObj;
-		this.reader.onload = function() {
-			Tiff.initialize({TOTAL_MEMORY:16777216*10})
-			that.tiff = new Tiff( {buffer : that.reader.result});
+		this.refresh = function() {
+			// Limit page number if upper
+			if (options.controls.numPage > that.tiff.countDirectory()) {
+				options.controls.numPage = that.tiff.countDirectory();
+			}
+			// Set to correct page
+			that.tiff.setDirectory(options.controls.numPage);
 			that.imgObj.width = that.tiff.width();
 			that.imgObj.height = that.tiff.height();
 			that.imgObj.src = that.tiff.toDataURL();
+			options.info = {
+				width : that.tiff.getField(Tiff.Tag.IMAGEWIDTH),
+				height : that.tiff.getField(Tiff.Tag.IMAGELENGTH),
+				compression : that.tiff.getField(Tiff.Tag.COMPRESSION),
+				document : that.tiff.getField(Tiff.Tag.DOCUMENTNAME),
+				description : that.tiff.getField(Tiff.Tag.IMAGEDESCRIPTION),
+				orientation : that.tiff.getField(Tiff.Tag.ORIENTATION),
+				resolution : that.tiff.getField(Tiff.Tag.XRESOLUTION)
+
+			};
+		};
+
+		this.reader.onload = function() {
+			Tiff.initialize({TOTAL_MEMORY:16777216*10});
+			that.tiff = new Tiff( {buffer : that.reader.result});
+			options.controls.totalPage = that.tiff.countDirectory();
+			options.controls.numPage = 1;
+			that.refresh();
+
 		};
 		this.reader.readAsArrayBuffer(data);
-		return this.reader;
+		return this;
 	}
 
 	function imageReader(data, options) {
@@ -65,6 +101,13 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			that.imgObj.src = that.reader.result;
 		};
 		this.reader.readAsDataURL(data);
+		// PNG or JPEG are one page only
+		options.controls.totalPage = 1;
+		options.controls.numPage = 1;
+		this.refresh = function() {
+			// do nothing			
+		};
+		return this;
 	}
 
 	function mpegReader(data, options) {
@@ -169,11 +212,14 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				'</canvas>'+
 				'<div class="title" ng-if="title!=null">{{title}}</div>'+
 				'<div class="command" ng-if="options.controls.image">'+
+				'<div class="btn btn-info" ng-click="options.controls.numPage=options.controls.numPage-1" ng-hide="options.controls.numPage==options.controls.totalPage"><i class="fa fa-minus"></i></div>'+
+				'<div class="btn btn-info" ng-hide="options.controls.numPage==options.controls.totalPage">{{options.controls.numPage}}/{{options.controls.totalPage}}</div>'+
+				'<div class="btn btn-info" ng-click="options.controls.numPage=options.controls.numPage+1" ng-hide="options.controls.numPage==options.controls.totalPage"><i class="fa fa-plus"></i></div>'+				
 				'<div class="btn btn-info" ng-click="fittopage()"><i class="fa fa-file-o"></i></div>'+
-				'<div class="btn btn-info" ng-click="rotateleft()"><i class="fa fa-rotate-left"></i></div>'+
-				'<div class="btn btn-info" ng-click="rotateright()"><i class="fa fa-rotate-right"></i></div>'+
-				'<div class="btn btn-info" ng-click="zoomout()"><i class="fa fa-search-minus"></i></div>'+
-				'<div class="btn btn-info" ng-click="zoomin()"><i class="fa fa-search-plus"></i></div></div>'+
+				'<div class="btn btn-info" ng-click="rotateleft()" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-left"></i></div>'+
+				'<div class="btn btn-info" ng-click="rotateright()" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-right"></i></div>'+
+				'<div class="btn btn-info" ng-click="zoomout()" ng-hide="options.controls.disableZoom"><i class="fa fa-search-minus"></i></div>'+
+				'<div class="btn btn-info" ng-click="zoomin()" ng-hide="options.controls.disableZoom"><i class="fa fa-search-plus"></i></div></div>'+
 				'<div class="command" ng-if="options.controls.sound">'+
 				'<div class="btn btn-info" ng-click="stop()"><i class="fa fa-stop"></i></div>'+
 				'<div class="btn btn-info" ng-click="play()"><i class="fa fa-play"></i></div></div>'+
@@ -201,9 +247,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			var overlays = [];
 			var reader = null;
 			// Merge scope with default values
-			scope.options = angular.extend({}, {
+			scope.options = angular.merge({}, {
 				imgObj : null,
-				ctx : ctx,
+				ctx : null,
 				adsrc : null,
 				zoom : {
 					value : 1.0,
@@ -216,11 +262,20 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					step : 90
 				},
 				controls : {
+					toolbar : true,
 					image : true,
 					sound : false,
-					fit : 'page'
-				}
+					fit : 'page',
+					disableZoom : false,
+					disableMove : false,
+					disableRotate : false,
+					numPage : 1,
+					totalPage : 1
+				},
+				info : {}
 			}, scope.options );
+
+			scope.options.ctx = ctx;
 
 			scope.$watch('imageSource', function(value) {
 				if (value === undefined || value === null)
@@ -243,9 +298,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					// Object type file
 					if (formatReader[value.type] != undefined) {
 						// get object
-						reader = formatReader[value.type];
+						var decoder = formatReader[value.type];
 						// Create image
-						reader.create(value, scope.options);
+						reader = decoder.create(value, scope.options);
 					} else {
 						console.log(value.type,' not supported !');
 					}
@@ -269,15 +324,25 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			}, true);
 
 			scope.$watch('options.zoom.value', function() {
-				applyTransform();
+				if (!scope.options.controls.disableZoom) {
+					applyTransform();
+				}
 			});
 
 			scope.$watch('options.rotate.value', function() {
-				applyTransform();
+				if (!scope.options.controls.disableRotate) {
+					applyTransform();
+				}
 			});
 
 			scope.$watch('options.controls.fit', function(value) {
 				resizeTo(value);
+			});
+
+			scope.$watch('options.controls.numPage', function(value) {
+				if (reader != null) {
+					reader.refresh();
+				}
 			});
 
 			// Bind mousewheel
@@ -313,8 +378,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			function applyTransform() {
 				var options = scope.options;
 				var canvas = ctx.canvas ;
-				var centerX = options.imgObj.width/2;
-				var centerY = options.imgObj.height/2;
+				var centerX = options.imgObj.width * options.zoom.value/2;
+				var centerY = options.imgObj.height * options.zoom.value/2;
 				// Clean before draw
 				ctx.clearRect(0,0,canvas.width, canvas.height);
 				// Save context
@@ -359,16 +424,28 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			}
 
 			angular.element(canvasEl).bind('mousedown' , function($event) {
+				if (scope.options.controls.disableMove) {
+					return;
+				}
+
 				scope.canMove = true;
 				curPos.x = $event.offsetX;
 				curPos.y = $event.offsetY;
 			});
 
 			angular.element(canvasEl).bind('mouseup', function($event) {
+				if (scope.options.controls.disableMove) {
+					return;
+				}
+
 				scope.canMove = false;
 			});
 
 			angular.element(canvasEl).bind('mousemove', function($event) {
+				if (scope.options.controls.disableMove) {
+					return;
+				}
+
 				if ((scope.options.imgObj !== null) && (scope.canMove)) {
 						var coordX = $event.offsetX;
 						var coordY = $event.offsetY;
@@ -473,6 +550,18 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					scope.options.adsrc.noteOff(0);
 				}
 			}
-		}
+
+            // resize canvas on window resize to keep aspect ratio
+			angular.element($window).bind('resize', function() {
+				scope.$applyAsync(function() {
+					var canvasSize = canvasEl.parentNode;
+					ctx.canvas.width  = canvasSize.clientWidth;
+					ctx.canvas.height = canvasSize.clientHeight;
+					ctx.canvas.style.width  = canvasSize.clientWidth;
+					ctx.canvas.style.height = canvasSize.clientHeight;
+					applyTransform();
+				});
+			});
+      	}
 	};
 }]);

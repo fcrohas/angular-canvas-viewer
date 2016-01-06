@@ -16,6 +16,8 @@ A sample demo is available [here](http://fcrohas.github.io/angular-canvas-viewer
 - [x]	Support many format of pictures and sound (PNG, JPG, PDF, TIFF, WAV, OGG, MPEG)
 - [x]	Image rotation and Zoom parametric ( Rotation angle by default is set to 90°)
 - [x]	External control
+- [x]	Metadata information extraction
+- [x]	Support multipage ( TIFF and PDF)
 
 ## How to build
 
@@ -26,7 +28,7 @@ You need  `npm` package manager :
 
 ## How to use it
 
- The directive usage is as follow ( CanvasViewer.min.worker.js must be in same folder that CanvasViewer.min.js but not in `script` tag ), `src` can be either a `string` or a `File` object :
+ The directive usage is as follow ( CanvasViewer.min.worker.js must be in same folder that CanvasViewer.min.js but not in `script` tag ), `src` can be either a `string` or a `File` or `Blob` object :
 
 ```html
 <html>
@@ -40,6 +42,18 @@ You need  `npm` package manager :
 </html>
 ```
 > `title` and `overlays` are optional.
+
+Usage with $http or input type file :
+
+```javascript
+$http.get("assets/img/billet_specimen_securite2.jpg", { responseType : 'blob'}).then(function(resp) {
+   $scope.fileInput = resp.data;
+});
+```
+
+```html
+<canvas-viewer src="fileInput" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
+```
 
 `overlays` is an `Array Of Object`  like :
 
@@ -61,9 +75,15 @@ controls | toolbar | Boolean to show/hide toolbar controls button
 controls | image | Boolean to show/hide pictures controls button
 controls | sound | Boolean to show/hide sound controls button
 controls | fit | Possible values are `page` , `height` or `width`
+controls | disableZoom | Disable zoom functionnality
+controls | disableRotate | Disable rotate functionnality
+controls | disableMove | Disable move functionnality
+controls | numPage | Current page to display ( only for TIFF and PDF)
+controls | totalPage | Total number of pages ( only for TIFF and PDF)
 imgObj | | The Current Javascript `Image` object displayed ( Only for pictures )
 adsrc | | The Current `AudioContext` object ( Only for sound)
 ctx | | The Current `CanvasContext` object ( Only for sound)
+info | | The Metadata properties of viewed object ( Only for pictures)
 
 Sample `options` object with initial value or simple empty object `{}`:
 
