@@ -27,9 +27,11 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 		that.page = null;
 		that.options = options;
 		that.currentPage = -1;
+		that.rendering = false;
 
 		function renderPage(parent) {
-			if (parent.page != null) {
+			if ((parent.page != null) && !parent.rendering){
+				parent.rendering = true;
 				parent.viewport = parent.page.getViewport( parent.options.zoom.value, 0);
 				// set viewport
 				canvas.width = parent.viewport.width;
@@ -42,6 +44,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						parent.height = parent.img.height;
 						callback();
 						parent.rendered = true;
+						parent.rendering = false;
 					};
 					parent.img.src = canvas.toDataURL();
 				});
