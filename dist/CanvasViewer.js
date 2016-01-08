@@ -212,7 +212,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// Go back
 				ctx.translate(- centerX, - centerY);
 				// Change scale
-				ctx.scale( options.zoom.value , options.zoom.value);
+				if (reader.isZoom)
+					ctx.scale( options.zoom.value , options.zoom.value);
 				// Draw image at correct position with correct scale
 				if (reader.data != null) {
 					var imageData = ctx.createImageData(reader.width, reader.height);
@@ -221,6 +222,11 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				} 
 				if (reader.img != null) {
 					ctx.drawImage(reader.img, 0 , 0 , reader.width , reader.height);
+					ctx.beginPath();
+					ctx.rect(0, 0, reader.width , reader.height );
+					ctx.lineWidth = 0.2;
+					ctx.strokeStyle = "#000000";
+					ctx.stroke();
 				}
 				// Restore
 				ctx.restore();
@@ -294,7 +300,6 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						scope.options.zoom.value = scope.options.zoom.max;
 					}
 					reader.refresh();
-					applyTransform();
 				});
 			};
 
@@ -305,7 +310,6 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						scope.options.zoom.value = scope.options.zoom.min;
 					}
 					reader.refresh();
-					applyTransform();
 				});
 			};
 

@@ -25,10 +25,6 @@ FormatReader.prototype = {
 		var that = this;
 		var canvas = document.createElement('canvas');
 		var context = canvas.getContext('2d');
-		// save canvas size before rendering
-		var canvasWidth = canvas.width;
-		var canvasHeight = canvas.height;
-
 		that._pdfDoc = null;
 		that.viewport = null;
 		that.img = new Image();
@@ -40,7 +36,7 @@ FormatReader.prototype = {
 		that.options = options;
 		that.currentPage = -1;
 		that.rendering = false;
-
+		that.isZoom = false;
 		function renderPage(parent) {
 			if ((parent.page != null) && !parent.rendering){
 				parent.rendering = true;
@@ -116,6 +112,7 @@ FormatReader.prototype = {
 		that.height = -1;
 		that.options = options;	
 		that.currentPage = -1;	
+		that.isZoom = true;
 		this.refresh = function() {
 			if (that.tiff == null) {
 				that.tiff = new Tiff( {buffer : that.reader.result});
@@ -181,6 +178,7 @@ FormatReader.prototype = {
 		that.width = -1;
 		that.height = -1;
 		options.info = {};
+		that.isZoom = true;
 		this.reader.onload = function() {
 			that.img.src = that.reader.result;
 		};
