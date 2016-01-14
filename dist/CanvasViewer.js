@@ -1,4 +1,4 @@
-angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http', function($window, $http){
+angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http', '$timeout', function($window, $http, $timeout){
 	var formatReader = new FormatReader();
 
 	return {
@@ -55,6 +55,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			ctx.canvas.height = canvasSize.clientHeight;
 			ctx.canvas.style.width  = canvasSize.clientWidth;
 			ctx.canvas.style.height = canvasSize.clientHeight;
+			var resize = { height : canvasSize.clientHeight, width : canvasSize.clientWidth};			
 			// initialize variable
 			var img = null;
 			var curPos = { x : 0, y : 0};
@@ -115,7 +116,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					// Object type file
 					if (formatReader.IsSupported(value.type) != undefined) {
 						// get object
-						var decoder = formatReader.CreateReader(value.type);
+						var decoder = formatReader.CreateReader(value.type, value);
 						// Create image
 						reader = decoder.create(value, scope.options, onload);
 					} else {
@@ -334,6 +335,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			};
 
 			scope.fittopage = function() {
+				if ((ctx.canvas == null) || (reader == null))  {
+					return;
+				}
+
 				scope.$applyAsync(function() {
 					var options = scope.options;
 					var ratioH = ctx.canvas.height / reader.height;
@@ -348,6 +353,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			};
 
 			scope.fittoheight = function() {
+				if ((ctx.canvas == null) || (reader == null))  {
+					return;
+				}
+
 				scope.$applyAsync(function() {
 					var options = scope.options;
 					var ratioH = ctx.canvas.height / reader.height;
@@ -361,6 +370,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			};
 
 			scope.fittowidth = function() {
+				if ((ctx.canvas == null) || (reader == null))  {
+					return;
+				}
+
 				scope.$applyAsync(function() {
 					var options = scope.options;
 					var ratioW = ctx.canvas.width / reader.width;
@@ -384,9 +397,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					scope.options.adsrc.stop(0);
 				}
 			}
-
-            // resize canvas on window resize to keep aspect ratio
-			angular.element($window).bind('resize', function() {
+			
+			function resizeCanvas() {
 				scope.$applyAsync(function() {
 					var canvasSize = canvasEl.parentNode;
 					ctx.canvas.width  = canvasSize.clientWidth;
@@ -395,6 +407,25 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					ctx.canvas.style.height = canvasSize.clientHeight;
 					applyTransform();
 				});
+			}
+			// Keep object
+			function parentChange() {
+				if (resize.width != canvasEl.parentNode.clientWidth) {
+					resize.width = canvasEl.parentNode.clientWidth;
+				}
+
+				if (resize.height != canvasEl.parentNode.clientHeight) {
+					resize.height = canvasEl.parentNode.clientHeight;
+				}
+				return resize;
+			}
+			//
+			scope.$watch(parentChange, function() {
+					resizeCanvas();	
+			}, true);
+        	// resize canvas on window resize to keep aspect ratio
+			angular.element($window).bind('resize', function() {
+			 	resizeCanvas();
 			});
       	}
 	};

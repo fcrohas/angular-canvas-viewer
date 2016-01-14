@@ -151,10 +151,8 @@ FormatReader.prototype = {
 				that.tiff.close();
 				that.tiff = null; 
 			}
-			Tiff.initialize({TOTAL_MEMORY:16777216*10});
+			Tiff.initialize({TOTAL_MEMORY:16777216*5});
 			that.refresh();
-			callback();			
-			that.rendered = true;			
 		};
 		this.reader.readAsArrayBuffer(data);
 		return this;
@@ -179,6 +177,7 @@ FormatReader.prototype = {
 		that.height = -1;
 		options.info = {};
 		that.isZoom = true;
+		that.rendered = false;
 		this.reader.onload = function() {
 			that.img.src = that.reader.result;
 		};
@@ -266,9 +265,15 @@ FormatReader.prototype = {
 		}
 	},
 	// Runs during compile
-	CreateReader : function(mimeType) {
+	CreateReader : function(mimeType, obj) {
 		var reader = null;
-		switch(mimeType) {
+
+		if (mimeType == "") {
+			mimeType = this.GuessMimeType(obj);
+		}
+
+		switch(mimeType.toLowerCase()) {
+			case "image/tif" :
 			case "image/tiff" :reader = { create : this.tiffReader }; break;
 			case "application/pdf" : reader = { create : this.pdfReader }; break;
 			case "image/png" : 
@@ -284,5 +289,14 @@ FormatReader.prototype = {
 	},
 	IsSupported : function(mimeType) {
 		return (this.mimetype.indexOf(mimeType) != -1);
+	},
+	GuessMimeType : function(obj) {
+		// try to guess mime type if not available
+		var mimeType = "";
+		if (obj.type == "") {
+			var fileName = obj.name;
+			mimeType = "image/"+fileName.substring(fileName.indexOf('.')+1);
+		}
+		return mimeType.toLowerCase();
 	}
 }
