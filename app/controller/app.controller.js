@@ -6,7 +6,7 @@
 angular.module('app.controller').controller('MainController', ['$scope', '$http', function($scope,$http){
     $scope.fileInput = 'assets/img/billet_specimen_securite2.jpg';
 	$scope.overlays = [{x : 50, y:155, w:106, h:29, color:'#00FF00'}];
-    $scope.options = { controls : { toolbar : true} };
+    $scope.options = { controls : { toolbar : true, fit : 'width'} };
     $scope.$watch('fileInput', function(newValue) {
         if (typeof(newValue) != "string") {
             $scope.overlays = [];

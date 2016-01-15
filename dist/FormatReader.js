@@ -31,28 +31,46 @@ FormatReader.prototype = {
 		that.rendered = false;
 		that.width = -1;
 		that.height = -1;
+		that.oldwidth = -1;
+		that.oldheight = -1;
 		that.data = null;
 		that.page = null;
 		that.options = options;
 		that.currentPage = -1;
 		that.rendering = false;
 		that.isZoom = false;
+		that.images = [];
 		function renderPage(parent) {
 			if ((parent.page != null) && !parent.rendering){
 				parent.rendering = true;
-				parent.viewport = parent.page.getViewport( parent.options.zoom.value, 0);
-				// set viewport
-				canvas.width = parent.viewport.width;
-				canvas.height = parent.viewport.height;
+				parent.oldwidth = parent.width;
+				parent.oldheight = parent.height;
+				// set viewport only on 1st page with filmstrip
+				if ((options.controls.filmStrip) && (that.currentPage == 1)) {
+					parent.viewport = parent.page.getViewport( parent.options.zoom.value, 0);
+					canvas.width = parent.viewport.width;
+					canvas.height = parent.viewport.height;
+				} else if (!options.controls.filmStrip) {
+					// Always rebuild viewport
+					parent.viewport = parent.page.getViewport( parent.options.zoom.value, 0);
+					canvas.width = parent.viewport.width;
+					canvas.height = parent.viewport.height;
+				}
 				// render to canvas
 				parent.page.render({canvasContext : context, viewport : parent.viewport, intent : 'display'}).then( function() {
 					// restore canvas
 					parent.img.onload = function() {
 						parent.width = parent.img.width;
 						parent.height = parent.img.height;
-						callback();
+						if (options.controls.filmStrip) {
+							// Add rendered image
+							parent.images.push(parent.img);
+						} else {
+							callback();							
+						}
 						parent.rendered = true;
 						parent.rendering = false;
+
 					};
 					parent.img.src = canvas.toDataURL();
 				});
@@ -63,15 +81,25 @@ FormatReader.prototype = {
 				if (that._pdfDoc == null) {
 					return;
 				}
-
-				if (that.currentPage != that.options.controls.numPage) {
-					that._pdfDoc.getPage(that.options.controls.numPage).then(function(page) {
-						that.page = page;
-						renderPage(that);
-						that.currentPage = that.options.controls.numPage;
-					});	
+				parent.rendered = false;
+				if (options.controls.filmStrip) {
+					for (var p = 1; p<= options.controls.totalPage; p++) {
+						that._pdfDoc.getPage(p).then(function(page) {
+							that.page = page;
+							renderPage(that);
+							that.currentPage = p;
+						});
+					}
 				} else {
-					renderPage(that);
+					if (that.currentPage != that.options.controls.numPage) {
+						that._pdfDoc.getPage(that.options.controls.numPage).then(function(page) {
+							that.page = page;
+							renderPage(that);
+							that.currentPage = that.options.controls.numPage;
+						});	
+					} else {
+						renderPage(that);
+					}
 				}
 		};
 
