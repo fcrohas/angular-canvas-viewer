@@ -1,17 +1,34 @@
 function FormatReader() {
 	this.mimetype = [
-		"image/tiff",
-		"application/pdf",
 		"image/png",
-		"image/jpeg",
-		"audio/x-wav",
-		"audio/wav",
-		"audio/x-ogg",
-		"audio/ogg",
-		"audio/x-mpeg",
-		"audio/mpeg"
+		"image/jpeg"
 	];
+	// Test supported mime types
+	// Is PDF module present
+	if (typeof(PDFJS) !== "undefined") {
+		// Remove it from list
+		this.mimetype.push("application/pdf");
+	}
+	// Is Tiff module present
+	if (typeof(Tiff) !== "undefined") {
+		// Remove it from list
+		this.mimetype.push("image/tif");
+		this.mimetype.push("image/tiff");
+	}
+	// Test for audio support
+	try {
+		var audioTest = $window.AudioContext || $window.webkitAudioContext || $window.mozAudioContext || $window.msAudioContext;
+		if (typeof(audioTest) !== "undefined") {
+			this.mimetype.push("audio/x-wav");
+			this.mimetype.push("audio/wav");
+			this.mimetype.push("audio/x-ogg");
+			this.mimetype.push("audio/ogg");
+			this.mimetype.push("audio/x-mpeg");
+			this.mimetype.push("audio/mpeg");
+		}
+	} catch(ex) {
 
+	}
 }
 
 FormatReader.prototype = {

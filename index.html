@@ -8,18 +8,20 @@
 	<link rel="stylesheet" type="text/css" href="assets/lib/font-awesome/css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap/dist/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="assets/lib/bootstrap/dist/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" type="text/css" href="assets/lib/json-formatter/dist/json-formatter.min.css">
 	<!-- endbower -->
-	<link rel="stylesheet" href="dist/CanvasViewer.css">
+	<link rel="stylesheet" href="src/CanvasViewer.css">
 	<link rel="stylesheet" href="assets/css/style.css">
 	<!-- bower:js -->
 	<script src="assets/lib/angular/angular.js" type="text/javascript" charset="utf-8"></script>
 	<script src="assets/lib/libtiff/tiff.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="assets/lib/pdfjs/pdf.compat.js" type="text/javascript" charset="utf-8"></script>
 	<script src="assets/lib/pdfjs/pdf.js" type="text/javascript" charset="utf-8"></script>
+	<script src="assets/lib/json-formatter/dist/json-formatter.min.js" type="text/javascript" charset="utf-8"></script>
 	<!-- endbower -->
 	<script src="app/app.modules.js" type="text/javascript" charset="utf-8"></script>	
-	<script src="dist/FormatReader.js" type="text/javascript" charset="utf-8"></script>	
-	<script src="dist/CanvasViewer.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="src/FormatReader.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="src/CanvasViewer.js" type="text/javascript" charset="utf-8"></script>	
 	<script src="app/controller/app.controller.js" type="text/javascript" charset="utf-8"></script>	
 </head>
 <body ng-controller="MainController">
@@ -50,7 +52,7 @@
 					<input name="rotateStep" class="form-control" type="number" ng-model="options.rotate.step" />
 				</div>
 				<div class="form-group">
-					<label>{{options.info | json}}</label>
+					<json-formatter open="1" json="options.info"></json-formatter>
 				</div>
 			</div>
 			<div class="col-md-10 max-height">

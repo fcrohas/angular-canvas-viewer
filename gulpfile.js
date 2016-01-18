@@ -8,9 +8,24 @@ var gulp = require('gulp')
 
 // task for js
 gulp.task('dist', function () {
-    gulp.src(['./assets/lib/libtiff/tiff.min.js', './assets/lib/pdfjs/pdf.compat.js', './assets/lib/pdfjs/pdf.js','./dist/FormatReader.js','./dist/CanvasViewer.js']) 
+    gulp.src(['./assets/lib/libtiff/tiff.min.js', './assets/lib/pdfjs/pdf.compat.js', './assets/lib/pdfjs/pdf.js','./src/FormatReader.js','./src/CanvasViewer.js']) 
+    .pipe(uglify())
+    .pipe(concat('CanvasViewer.all.min.js'))
+    .pipe(gulp.dest('./dist'));
+
+    gulp.src(['./src/FormatReader.js','./src/CanvasViewer.js']) 
     .pipe(uglify())
     .pipe(concat('CanvasViewer.min.js'))
+    .pipe(gulp.dest('./dist'));
+
+    gulp.src(['./assets/lib/libtiff/tiff.min.js']) 
+    .pipe(uglify())
+    .pipe(concat('CanvasViewer.tiff.min.js'))
+    .pipe(gulp.dest('./dist'));
+
+    gulp.src(['./assets/lib/pdfjs/pdf.compat.js', './assets/lib/pdfjs/pdf.js']) 
+    .pipe(uglify())
+    .pipe(concat('CanvasViewer.pdf.min.js'))
     .pipe(gulp.dest('./dist'));
 
     gulp.src(['./assets/lib/pdfjs/pdf.worker.js']) 
@@ -18,7 +33,12 @@ gulp.task('dist', function () {
     .pipe(concat('CanvasViewer.min.worker.js'))
     .pipe(gulp.dest('./dist'));
 
-    gulp.src(['./dist/CanvasViewer.css']) 
+    gulp.src(['./assets/lib/pdfjs/pdf.worker.js']) 
+    .pipe(uglify())
+    .pipe(concat('CanvasViewer.all.min.worker.js'))
+    .pipe(gulp.dest('./dist'));
+
+    gulp.src(['./src/CanvasViewer.css']) 
     .pipe(minifyCss())
     .pipe(concat('CanvasViewer.min.css'))
     .pipe(gulp.dest('./dist'));
@@ -31,12 +51,12 @@ gulp.task('deploy', function() {
     .pipe(concat('app.min.js'))
     .pipe(gulp.dest('./gh-pages/app/'));
 
-    gulp.src(['./assets/lib/angular/angular.min.js']) 
+    gulp.src(['./assets/lib/angular/angular.min.js','assets/lib/json-formatter/dist/json-formatter.min.js']) 
     .pipe(uglify())
     .pipe(concat('vendor.min.js'))
     .pipe(gulp.dest('./gh-pages/assets/lib/'));
 
-    gulp.src(['./assets/css/style.css']) 
+    gulp.src(['./assets/css/style.css','assets/lib/json-formatter/dist/json-formatter.min.css']) 
     .pipe(minifyCss())
     .pipe(concat('style.min.css'))
     .pipe(gulp.dest('./gh-pages/assets/css'));

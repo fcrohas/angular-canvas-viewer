@@ -30,11 +30,11 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				'<div class="btn btn-info" ng-click="options.controls.numPage=options.controls.numPage-1" ng-hide="options.controls.totalPage==1"><i class="fa fa-minus"></i></div>'+
 				'<div class="btn btn-info" ng-hide="options.controls.totalPage==1">{{options.controls.numPage}}/{{options.controls.totalPage}}</div>'+
 				'<div class="btn btn-info" ng-click="options.controls.numPage=options.controls.numPage+1" ng-hide="options.controls.totalPage==1"><i class="fa fa-plus"></i></div>'+				
-				'<div class="btn btn-info" ng-click="fittopage()"><i class="fa fa-file-o"></i></div>'+
-				'<div class="btn btn-info" ng-click="rotateleft()" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-left"></i></div>'+
-				'<div class="btn btn-info" ng-click="rotateright()" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-right"></i></div>'+
-				'<div class="btn btn-info" ng-click="zoomout()" ng-hide="options.controls.disableZoom"><i class="fa fa-search-minus"></i></div>'+
-				'<div class="btn btn-info" ng-click="zoomin()" ng-hide="options.controls.disableZoom"><i class="fa fa-search-plus"></i></div></div>'+
+				'<div class="btn btn-info" ng-click="resizeTo(\'page\')"><i class="fa fa-file-o"></i></div>'+
+				'<div class="btn btn-info" ng-click="rotate(-1)" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-left"></i></div>'+
+				'<div class="btn btn-info" ng-click="rotate(1)" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-right"></i></div>'+
+				'<div class="btn btn-info" ng-click="zoom(-1)" ng-hide="options.controls.disableZoom"><i class="fa fa-search-minus"></i></div>'+
+				'<div class="btn btn-info" ng-click="zoom(1)" ng-hide="options.controls.disableZoom"><i class="fa fa-search-plus"></i></div></div>'+
 				'<div class="command" ng-if="options.controls.sound">'+
 				'<div class="btn btn-info" ng-click="stop()"><i class="fa fa-stop"></i></div>'+
 				'<div class="btn btn-info" ng-click="play()"><i class="fa fa-play"></i></div></div>'+
@@ -102,7 +102,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				if (reader.rendered) {
 					applyTransform();
 				} else {
-					resizeTo(scope.options.controls.fit);
+					scope.resizeTo(scope.options.controls.fit);
 				}
 			}
 
@@ -118,7 +118,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// test if object or string is input of directive
 				if (typeof(value) === 'object') {
 					// Object type file
-					if (formatReader.IsSupported(value.type) != undefined) {
+					if (formatReader.IsSupported(value.type)) {
 						// get object
 						var decoder = formatReader.CreateReader(value.type, value);
 						// Create image
@@ -158,7 +158,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			});
 
 			scope.$watch('options.controls.fit', function(value) {
-				resizeTo(value);
+				scope.resizeTo(value);
 			});
 
 			scope.$watch('options.controls.numPage', function(value) {
@@ -178,9 +178,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
                 var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
 
                 if(delta > 0) {
-					scope.zoomin($event);
+					scope.zoom(1);
                 } else {
-					scope.zoomout($event);
+					scope.zoom(-1);
                 }
                 // for IE
                 event.returnValue = false;
@@ -190,23 +190,6 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
                 }
 
             });
-
-			function resizeTo(value) {
-				switch(value) {
-					case 'width' : scope.fittowidth(); break;
-					case 'height' : scope.fittoheight(); break;
-					case 'page' :
-					default : scope.fittopage(); 
-				}
-			}
-
-			function centerPics() {
-				// Position to canvas center
-				var centerX = ctx.canvas.width / 2;
-				var picPosX =  centerX - (reader.width * scope.options.zoom.value) / 2;
-				curPos = { x : picPosX, y : 0};
-				picPos = { x : picPosX, y : 0};
-			}
 
 			function applyTransform() {
 				if (reader == null) {
@@ -310,7 +293,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				}
 			});
 
-			scope.zoomin = function() {
+			scope.zoom = function(direction) {
 				scope.$applyAsync(function() {
 					var oldWidth, newWidth = 0;
 					var oldHeight, newHeight = 0;
@@ -325,7 +308,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					}
 
 					// Compute new zoom
-					scope.options.zoom.value += scope.options.zoom.step;
+					scope.options.zoom.value += scope.options.zoom.step * direction;
 					// Round
 					scope.options.zoom.value = Math.round(scope.options.zoom.value*100)/100;
 					if (scope.options.zoom.value >= scope.options.zoom.max) {
@@ -344,132 +327,62 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					// new image position after zoom
 					picPos.x = picPos.x - (newWidth - oldWidth)/2;
 					picPos.y = picPos.y - (newHeight - oldHeight)/2;
-				});
-			};
+				});				
+			}
 
-			scope.zoomout = function() {
+			scope.rotate = function(direction) {
 				scope.$applyAsync(function() {
-					var oldWidth, newWidth = 0;
-					var oldHeight, newHeight = 0;
-					// Does reader support zoom ?
-					// Compute correct width
-					if (!reader.isZoom) {
-						oldWidth = reader.oldwidth;
-						oldHeight = reader.height;
-					} else {
-						oldWidth = reader.width * scope.options.zoom.value;
-						oldHeight = reader.height * scope.options.zoom.value;
-					}
-
-					scope.options.zoom.value -= scope.options.zoom.step;
-					// Round
-					scope.options.zoom.value = Math.round(scope.options.zoom.value*100)/100;
-					if (scope.options.zoom.value <= scope.options.zoom.min) {
-						scope.options.zoom.value = scope.options.zoom.min;
-					}
-					reader.refresh();
-					// Compute new image size
-					if (!reader.isZoom) {
-						newWidth = reader.width;
-						newHeight = reader.height;
-					} else {
-						newWidth = reader.width * scope.options.zoom.value;
-						newHeight = reader.height * scope.options.zoom.value;
-					}
-					picPos.x = picPos.x + (oldWidth - newWidth)/2;
-					picPos.y = picPos.y + (oldHeight - newHeight)/2;
-				});
-			};
-
-			scope.rotateleft = function() {
-				scope.$applyAsync(function() {
-					scope.options.rotate.value -= scope.options.rotate.step;
-					if (scope.options.rotate.value <= -360) {
+					scope.options.rotate.value += scope.options.rotate.step * direction;
+					if ((scope.options.rotate.value <= -360) || (scope.options.rotate.value >= 360)) {
 						scope.options.rotate.value = 0;
 					}
 					applyTransform();
 				});
 			};
 
-			scope.rotateright = function() {
-				scope.$applyAsync(function() {
-					scope.options.rotate.value += scope.options.rotate.step;
-					if (scope.options.rotate.value >= 360) {
-						scope.options.rotate.value = 0;
-					}
-					applyTransform();
-				});
-			};
+			var centerPics = function() {
+				// Position to canvas center
+				var centerX = ctx.canvas.width / 2;
+				var picPosX =  centerX - (reader.width * scope.options.zoom.value) / 2;
+				curPos = { x : picPosX, y : 0};
+				picPos = { x : picPosX, y : 0};
+			}
 
-			scope.fittopage = function() {
+			scope.resizeTo = function(value) {
 				if ((ctx.canvas == null) || (reader == null))  {
 					return;
 				}
-
+				// Compute page ratio
+				var options = scope.options;
+				var ratioH = ctx.canvas.height / reader.height;
+				var ratioW = ctx.canvas.width / reader.width;
+				// If reader render zoom itself
+				// Precompute from its ratio
+				if (!reader.isZoom) {
+					ratioH *= scope.options.zoom.value;				
+					ratioW *= scope.options.zoom.value;
+				}
+				// Adjust value
+				switch(value) {
+					case 'width' : scope.options.zoom.value = ratioW; break;
+					case 'height' : scope.options.zoom.value = ratioH; break;
+					case 'page' :
+					default : scope.options.zoom.value = Math.min(ratioH,ratioW); 
+				}
 				scope.$applyAsync(function() {
-					var options = scope.options;
-					var ratioH = ctx.canvas.height / reader.height;
-					var ratioW = ctx.canvas.width / reader.width;
-					scope.options.zoom.value = Math.min(ratioH,ratioW);
-					// Round
+					// Round zoom value
 					scope.options.zoom.value = Math.round(scope.options.zoom.value*100)/100;
 					// Re center image
 					centerPics();
 					// Update options state
-					scope.options.controls.fit = 'page';
+					scope.options.controls.fit = value;
 					if (!reader.isZoom) {
 						reader.refresh();
 					} else {
 						applyTransform();
 					}
 				});
-			};
-
-			scope.fittoheight = function() {
-				if ((ctx.canvas == null) || (reader == null))  {
-					return;
-				}
-
-				scope.$applyAsync(function() {
-					var options = scope.options;
-					var ratioH = ctx.canvas.height / reader.height;
-					scope.options.zoom.value = ratioH;
-					// Round
-					scope.options.zoom.value = Math.round(scope.options.zoom.value*100)/100;
-					// Re center image
-					centerPics();
-					// Update options state
-					scope.options.controls.fit = 'height';
-					if (!reader.isZoom) {
-						reader.refresh();
-					} else {
-						applyTransform();
-					}				
-				});
-			};
-
-			scope.fittowidth = function() {
-				if ((ctx.canvas == null) || (reader == null))  {
-					return;
-				}
-
-				scope.$applyAsync(function() {
-					var options = scope.options;
-					var ratioW = ctx.canvas.width / reader.width;
-					scope.options.zoom.value = ratioW;
-					// Round
-					scope.options.zoom.value = Math.round(scope.options.zoom.value*100)/100;
-					// Re center image
-					centerPics();
-					// Update options state
-					scope.options.controls.fit = 'width';
-					if (!reader.isZoom) {
-						reader.refresh();
-					} else {
-						applyTransform();
-					}
-				});
-			};
+			}
 
 			scope.play = function() {
 				if (scope.options.adsrc!=null) {
