@@ -14,6 +14,7 @@ A sample demo is available [here](http://fcrohas.github.io/angular-canvas-viewer
 ## Features
 
 - [x]	Support many format of pictures and sound (PNG, JPG, PDF, TIFF, WAV, OGG, MPEG)
+- [x]	Module delivery or whole package
 - [x]	Image rotation and Zoom parametric ( Rotation angle by default is set to 90°)
 - [x]	External control
 - [x]	Metadata information extraction
@@ -33,8 +34,8 @@ You need  `npm` package manager :
 ```html
 <html>
 	<head>
-		<link rel="stylesheet" href="dist/CanvasViewer.min.css">
-		<script src="dist/CanvasViewer.min.js" type="text/javascript" charset="utf-8"></script>	
+		<link rel="stylesheet" href="dist/CanvasViewer.all.min.css">
+		<script src="dist/CanvasViewer.all.min.js" type="text/javascript" charset="utf-8"></script>	
 	</head>
 	<body>
 		<canvas-viewer src="test.jpg" title="TITLE" overlays="overlays" options="options"></canvas-viewer>
@@ -80,7 +81,7 @@ controls | disableRotate | Disable rotate functionnality
 controls | disableMove | Disable move functionnality
 controls | numPage | Current page to display ( only for TIFF and PDF)
 controls | totalPage | Total number of pages ( only for TIFF and PDF)
-imgObj | | The Current Javascript `Image` object displayed ( Only for pictures )
+controls | filmstrip | Display multipage as film
 adsrc | | The Current `AudioContext` object ( Only for sound)
 ctx | | The Current `CanvasContext` object ( Only for sound)
 info | | The Metadata properties of viewed object ( Only for pictures)
