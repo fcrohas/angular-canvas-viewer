@@ -14,7 +14,7 @@
 	<!-- bower:js -->
 	<script src="assets/lib/vendor.min.js" type="text/javascript" charset="utf-8"></script>
 	<!-- endbower -->
-	<script src="dist/CanvasViewer.min.js" type="text/javascript" charset="utf-8"></script>	
+	<script src="dist/CanvasViewer.all.min.js" type="text/javascript" charset="utf-8"></script>	
 	<script src="app/app.min.js" type="text/javascript" charset="utf-8"></script>	
 </head>
 <body ng-controller="MainController">
@@ -45,7 +45,7 @@
 					<input name="rotateStep" class="form-control" type="number" ng-model="options.rotate.step" />
 				</div>
 				<div class="form-group">
-					<label>{{options.info | json}}</label>
+					<json-formatter open="1" json="options.info"></json-formatter>
 				</div>
 			</div>
 			<div class="col-md-10 max-height">
