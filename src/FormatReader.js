@@ -32,7 +32,7 @@ function FormatReader() {
 }
 
 FormatReader.prototype = {
-	pdfReader : function(data, options, callback) {
+	pdfReader : function(data, options, callback, $q) {
 		if (options.controls.toolbar) {
 			options.controls.image = true;
 			options.controls.sound = false;
@@ -40,8 +40,7 @@ FormatReader.prototype = {
 		this.reader = new FileReader();
 		// read image object
 		var that = this;
-		var canvas = document.createElement('canvas');
-		var context = canvas.getContext('2d');
+		that.$q = $q;
 		that._pdfDoc = null;
 		that.viewport = null;
 		that.img = new Image();
@@ -57,39 +56,55 @@ FormatReader.prototype = {
 		that.rendering = false;
 		that.isZoom = false;
 		that.images = [];
-		function renderPage(parent) {
-			if ((parent.page != null) && !parent.rendering){
+		function renderPage(parent, pageNum, pageObj) {
+			if (pageNum == undefined) {
+				pageNum = that.currentPage;
+			}
+
+			if (pageObj == undefined) {
+				pageObj = parent.page; 
+			}
+			var canvas = document.createElement('canvas');
+			var context = canvas.getContext('2d');
+
+			if ((pageObj != null)/* && !parent.rendering*/){
 				parent.rendering = true;
 				parent.oldwidth = parent.width;
 				parent.oldheight = parent.height;
 				// set viewport only on 1st page with filmstrip
-				if ((options.controls.filmStrip) && (that.currentPage == 1)) {
-					parent.viewport = parent.page.getViewport( parent.options.zoom.value, 0);
-					canvas.width = parent.viewport.width;
-					canvas.height = parent.viewport.height;
-				} else if (!options.controls.filmStrip) {
-					// Always rebuild viewport
-					parent.viewport = parent.page.getViewport( parent.options.zoom.value, 0);
-					canvas.width = parent.viewport.width;
-					canvas.height = parent.viewport.height;
-				}
+				var viewport = pageObj.getViewport( parent.options.zoom.value, 0);
+				canvas.width = viewport.width;
+				canvas.height = viewport.height;
 				// render to canvas
-				parent.page.render({canvasContext : context, viewport : parent.viewport, intent : 'display'}).then( function() {
+				return pageObj.render({canvasContext : context, viewport : viewport, intent : 'display'}).then( function() {
 					// restore canvas
-					parent.img.onload = function() {
-						parent.width = parent.img.width;
-						parent.height = parent.img.height;
-						if (options.controls.filmStrip) {
+					var img = new Image();
+					img.onload = function() {
+						parent.width = img.width;
+						parent.height = img.height;
+						if (options.controls.filmstrip) {
 							// Add rendered image
-							parent.images.push(parent.img);
+							img.pageNum = pageNum;
+							parent.images.push(img);
+							if (parent.images.length == options.controls.totalPage) {
+								// Do sorting of all pictures
+								parent.images.sort( function(objA, objB) {
+									return objA.pageNum - objB.pageNum;
+								});
+								// Do drawing on rendering ended
+								callback();		
+							}
 						} else {
-							callback();							
+							// Single image rendering
+							that.img = img;
+							// Do drawing on rendering ended
+							callback();	
 						}
 						parent.rendered = true;
 						parent.rendering = false;
 
 					};
-					parent.img.src = canvas.toDataURL();
+					img.src = canvas.toDataURL();
 				});
 			}
 		}
@@ -99,23 +114,26 @@ FormatReader.prototype = {
 					return;
 				}
 				parent.rendered = false;
-				if (options.controls.filmStrip) {
-					for (var p = 1; p<= options.controls.totalPage; p++) {
-						that._pdfDoc.getPage(p).then(function(page) {
-							that.page = page;
-							renderPage(that);
-							that.currentPage = p;
-						});
+				if (options.controls.filmstrip) {
+					var p = 1;
+					var promises = [];
+					that.images = [];
+					for (var p = 1; p <= options.controls.totalPage; p++) {
+						promises.push( that._pdfDoc.getPage(p) );
 					}
+					that.$q.all(promises).then(function(pages) {
+						for (var p =0; p<pages.length; p++) {
+							renderPage(that, pages[p].pageIndex, pages[p]);
+						}
+					});
+
 				} else {
 					if (that.currentPage != that.options.controls.numPage) {
 						that._pdfDoc.getPage(that.options.controls.numPage).then(function(page) {
-							that.page = page;
-							renderPage(that);
-							that.currentPage = that.options.controls.numPage;
+							renderPage(that, that.options.controls.numPage, page);
 						});	
 					} else {
-						renderPage(that);
+						renderPage(that, that.options.controls.numPage, page);
 					}
 				}
 		};
@@ -129,7 +147,7 @@ FormatReader.prototype = {
 				that._pdfDoc.getMetadata().then(function(data) {
 					options.info = data.info;
 					options.info.metadata = data.metadata;
-				});				
+				});
 				that.refresh();
 			});
 		};
@@ -148,14 +166,11 @@ FormatReader.prototype = {
 		that.rendered = false;
 		that.tiff = null;
 		that.img = new Image();
-		that.img.onload = function() {
-			callback();
-			that.rendered = true;
-		}
 		that.data = null;
 		that.width = -1;
 		that.height = -1;
 		that.options = options;	
+		that.images = [];
 		that.currentPage = -1;	
 		that.isZoom = true;
 		this.refresh = function() {
@@ -181,13 +196,43 @@ FormatReader.prototype = {
 				that.options.controls.numPage = that.options.controls.totalPage;
 			}
 			// Set to correct page
-			if (that.currentPage != that.options.controls.numPage) {
-				that.tiff.setDirectory(that.options.controls.numPage);
-				that.width = that.tiff.width();
-				that.height = that.tiff.height();
-				//that.data = new Uint8Array(that.tiff.readRGBAImage());			
-				that.img.src = that.tiff.toDataURL();
-				that.currentPage = that.options.controls.numPage;
+			if (that.options.controls.filmstrip) {
+				that.images = [];
+				for(var p=0; p < that.tiff.countDirectory(); p++) {
+					that.tiff.setDirectory(p);
+					// Set only first page @TODO
+					if (p==0) {
+						that.width = that.tiff.width();
+						that.height = that.tiff.height();
+					}
+					that.images[p] = new Image();
+					that.images[p].onload = function() {
+						console.log(that.images.length ,that.tiff.countDirectory());						
+						if (that.images.length == 1) {
+							that.img = that.images[0];
+						}
+						callback();
+					}
+					that.images[p].src = that.tiff.toDataURL();
+					that.images[p].pageNum = p;
+					//that.currentPage = that.options.controls.numPage;
+				}
+
+			} else {
+				if (that.currentPage != that.options.controls.numPage) {
+					var img = new Image();
+					img.onload = function() {
+						that.img = img;
+						callback();
+						that.rendered = true;
+					}
+					that.tiff.setDirectory(that.options.controls.numPage-1);
+					that.width = that.tiff.width();
+					that.height = that.tiff.height();
+					//that.data = new Uint8Array(that.tiff.readRGBAImage());			
+					img.src = that.tiff.toDataURL();
+					that.currentPage = that.options.controls.numPage;
+				}
 			}
 		};
 

@@ -12,6 +12,7 @@ angular.module('app.controller').controller('MainController', ['$scope', '$http'
             $scope.overlays = [];
         }
     });
+
 }]).directive('fileModel', ['$parse', function ($parse) {
     return {
         restrict: 'A',

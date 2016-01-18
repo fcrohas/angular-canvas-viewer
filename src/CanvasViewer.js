@@ -1,4 +1,4 @@
-angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http', '$timeout', function($window, $http, $timeout){
+angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http', '$timeout', '$q', function($window, $http, $timeout, $q){
 	var formatReader = new FormatReader();
 
 	return {
@@ -122,12 +122,12 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						// get object
 						var decoder = formatReader.CreateReader(value.type, value);
 						// Create image
-						reader = decoder.create(value, scope.options, onload);
+						reader = decoder.create(value, scope.options, onload, $q);
 					} else {
 						console.log(value.type,' not supported !');
 					}
 				} else if(typeof(value) === 'string') {
-					reader = formatReader.CreateReader("image/jpeg").create(value, scope.options, onload);
+					reader = formatReader.CreateReader("image/jpeg").create(value, scope.options, onload, $q);
 				}
 			});
 
@@ -161,12 +161,27 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				scope.resizeTo(value);
 			});
 
+			scope.$watch('options.controls.filmstrip', function(position) {
+				if (position) {
+					reader.refresh();
+				} else {
+					reader.refresh();
+					applyTransform();
+				}
+			});
+
 			scope.$watch('options.controls.numPage', function(value) {
 				// Limit page navigation
 				if (scope.options.controls.numPage < 1) scope.options.controls.numPage = 1;
 				if (scope.options.controls.numPage > scope.options.controls.totalPage) scope.options.controls.numPage = scope.options.controls.totalPage;
 				if (reader != null) {
-					reader.refresh();
+					if (scope.options.controls.filmstrip) {
+						// All pages are already rendered so go to correct page
+						picPos.y = (scope.options.controls.numPage - 1)  * -(reader.height+15);
+						applyTransform();
+					} else {
+						reader.refresh();
+					}
 				}
 			});
 
@@ -176,12 +191,19 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
                 // cross-browser wheel delta
                 var event = window.event || $event; // old IE support
                 var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
-
-                if(delta > 0) {
-					scope.zoom(1);
+                if (scope.options.controls.filmstrip) {
+					picPos.y += 50 * delta;
+	                //
+	                scope.$applyAsync( function() {
+	                	applyTransform();
+	                });
                 } else {
-					scope.zoom(-1);
-                }
+	                if(delta > 0) {
+						scope.zoom(1);
+	                } else {
+						scope.zoom(-1);
+	                }
+            	}
                 // for IE
                 event.returnValue = false;
                 // for Chrome and Firefox
@@ -218,13 +240,27 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
     				imageData.data.set(reader.data);
     				ctx.putImageData(imageData, 0, 0);					
 				} 
-				if (reader.img != null) {
-					ctx.drawImage(reader.img, 0 , 0 , reader.width , reader.height);
-					ctx.beginPath();
-					ctx.rect(0, 0, reader.width , reader.height );
-					ctx.lineWidth = 0.2;
-					ctx.strokeStyle = "#000000";
-					ctx.stroke();
+				if ((!options.controls.filmstrip) || (options.controls.totalPage == 1)) {
+					if (reader.img != null) {
+						ctx.drawImage(reader.img, 0 , 0 , reader.width , reader.height);
+						ctx.beginPath();
+						ctx.rect(0, 0, reader.width , reader.height );
+						ctx.lineWidth = 0.2;
+						ctx.strokeStyle = "#000000";
+						ctx.stroke();
+					}
+				} else {
+					if (reader.images != null) {
+						angular.forEach(reader.images, function(image) { 
+							ctx.drawImage(image, 0 , 0 , image.width , image.height);
+							ctx.beginPath();
+							ctx.rect(0, 0, image.width , image.height );
+							ctx.lineWidth = 0.2;
+							ctx.strokeStyle = "#000000";
+							ctx.stroke();
+							ctx.translate(0, image.height + 15);
+						});
+					}
 				}
 				// Restore
 				ctx.restore();
@@ -313,6 +349,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					scope.options.zoom.value = Math.round(scope.options.zoom.value*100)/100;
 					if (scope.options.zoom.value >= scope.options.zoom.max) {
 						scope.options.zoom.value = scope.options.zoom.max;
+					}
+					if (scope.options.zoom.value <= scope.options.zoom.min) {
+						scope.options.zoom.value = scope.options.zoom.min;
 					}
 					// Refresh picture
 					reader.refresh();
