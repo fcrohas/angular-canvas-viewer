@@ -53,8 +53,6 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			var canvasSize = canvasEl.parentNode;
 			ctx.canvas.width  = canvasSize.clientWidth;
 			ctx.canvas.height = canvasSize.clientHeight;
-			ctx.canvas.style.width  = canvasSize.clientWidth;
-			ctx.canvas.style.height = canvasSize.clientHeight;
 			var resize = { height : canvasSize.clientHeight, width : canvasSize.clientWidth};			
 			// initialize variable
 			var img = null;
@@ -63,6 +61,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			var mousePos = { x : 0, y : 0};
 			var overlays = [];
 			var reader = null;
+
 			// Merge scope with default values
 			scope.options = angular.merge({}, {
 				ctx : null,
@@ -122,12 +121,12 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						// get object
 						var decoder = formatReader.CreateReader(value.type, value);
 						// Create image
-						reader = decoder.create(value, scope.options, onload, $q);
+						reader = decoder.create(value, scope.options, onload, $q, $timeout);
 					} else {
 						console.log(value.type,' not supported !');
 					}
 				} else if(typeof(value) === 'string') {
-					reader = formatReader.CreateReader("image/jpeg").create(value, scope.options, onload, $q);
+					reader = formatReader.CreateReader("image/jpeg").create(value, scope.options, onload, $q, $timeout);
 				}
 			});
 
@@ -162,12 +161,15 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			});
 
 			scope.$watch('options.controls.filmstrip', function(position) {
+				
 				if (position) {
-					reader.refresh();
+					scope.options.controls.disableMove = true;
+					scope.options.controls.disableRotate = true;
 				} else {
-					reader.refresh();
-					applyTransform();
+					scope.options.controls.disableMove = false;
+					scope.options.controls.disableRotate = false;
 				}
+				reader.refresh();
 			});
 
 			scope.$watch('options.controls.numPage', function(value) {
@@ -193,6 +195,19 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
                 var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
                 if (scope.options.controls.filmstrip) {
 					picPos.y += 50 * delta;
+					// Limit range
+					if (picPos.y > 15) {
+						picPos.y = 15;
+					}
+					if (reader.images) {
+						if (picPos.y - reader.height * scope.options.zoom.value < -(reader.height + 15) * reader.images.length  * scope.options.zoom.value ) {
+							picPos.y = -(reader.height + 15) * reader.images.length + reader.height;
+						}
+					} else {
+						if (picPos.y - reader.height  * scope.options.zoom.value < -reader.height * scope.options.zoom.value ) {
+							picPos.y = -reader.height * scope.options.zoom.value;
+						}
+					}
 	                //
 	                scope.$applyAsync( function() {
 	                	applyTransform();
@@ -355,6 +370,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					}
 					// Refresh picture
 					reader.refresh();
+					
 					// Compute new image size
 					if (!reader.isZoom) {
 						newWidth = reader.width;
@@ -382,7 +398,8 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			var centerPics = function() {
 				// Position to canvas center
 				var centerX = ctx.canvas.width / 2;
-				var picPosX =  centerX - (reader.width * scope.options.zoom.value) / 2;
+				var picPosX = 0;
+				picPosX =  centerX - (reader.width * scope.options.zoom.value) / 2;
 				curPos = { x : picPosX, y : 0};
 				picPos = { x : picPosX, y : 0};
 			}
@@ -411,13 +428,15 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				scope.$applyAsync(function() {
 					// Round zoom value
 					scope.options.zoom.value = Math.round(scope.options.zoom.value*100)/100;
-					// Re center image
-					centerPics();
 					// Update options state
 					scope.options.controls.fit = value;
 					if (!reader.isZoom) {
 						reader.refresh();
+						// Re center image
+						centerPics();
 					} else {
+						// Re center image
+						centerPics();
 						applyTransform();
 					}
 				});
@@ -440,8 +459,6 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					var canvasSize = canvasEl.parentNode;
 					ctx.canvas.width  = canvasSize.clientWidth;
 					ctx.canvas.height = canvasSize.clientHeight;
-					ctx.canvas.style.width  = canvasSize.clientWidth;
-					ctx.canvas.style.height = canvasSize.clientHeight;
 					applyTransform();
 				});
 			}

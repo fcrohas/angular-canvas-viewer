@@ -32,7 +32,7 @@ function FormatReader() {
 }
 
 FormatReader.prototype = {
-	pdfReader : function(data, options, callback, $q) {
+	pdfReader : function(data, options, callback, $q, $timeout) {
 		if (options.controls.toolbar) {
 			options.controls.image = true;
 			options.controls.sound = false;
@@ -56,6 +56,8 @@ FormatReader.prototype = {
 		that.rendering = false;
 		that.isZoom = false;
 		that.images = [];
+		that.timeout = false;
+		that.triggerRefresh = false;
 		function renderPage(parent, pageNum, pageObj) {
 			if (pageNum == undefined) {
 				pageNum = that.currentPage;
@@ -113,6 +115,25 @@ FormatReader.prototype = {
 				if (that._pdfDoc == null) {
 					return;
 				}
+				if (!that.timeout) {
+					if (that.triggerRefresh) {
+						return;
+					}
+
+					console.log('refresh later');
+					$timeout( function() {
+						that.timeout = true;
+						that.isZoom = false;
+						that.triggerRefresh = false;
+						console.log('timeout');
+						that.refresh();
+					},1000);
+					
+					that.isZoom = true;
+					that.triggerRefresh = true;
+					return;
+				}
+				that.timeout = false;
 				parent.rendered = false;
 				if (options.controls.filmstrip) {
 					var p = 1;
@@ -207,7 +228,6 @@ FormatReader.prototype = {
 					}
 					that.images[p] = new Image();
 					that.images[p].onload = function() {
-						console.log(that.images.length ,that.tiff.countDirectory());						
 						if (that.images.length == 1) {
 							that.img = that.images[0];
 						}
