@@ -68,12 +68,12 @@ FormatReader.prototype = {
 			}
 			var canvas = document.createElement('canvas');
 			var context = canvas.getContext('2d');
-
 			if ((pageObj != null)/* && !parent.rendering*/){
 				parent.rendering = true;
 				parent.oldwidth = parent.width;
 				parent.oldheight = parent.height;
 				// set viewport only on 1st page with filmstrip
+				if (Math.abs(parent.options.zoom.value) == 0) parent.options.zoom.value = 1.0;
 				var viewport = pageObj.getViewport( parent.options.zoom.value, 0);
 				canvas.width = viewport.width;
 				canvas.height = viewport.height;
@@ -84,7 +84,7 @@ FormatReader.prototype = {
 					img.onload = function() {
 						parent.width = img.width;
 						parent.height = img.height;
-						if (options.controls.filmstrip) {
+						if (options.controls.filmStrip) {
 							// Add rendered image
 							img.pageNum = pageNum;
 							parent.images.push(img);
@@ -94,15 +94,16 @@ FormatReader.prototype = {
 									return objA.pageNum - objB.pageNum;
 								});
 								// Do drawing on rendering ended
-								callback();		
+								callback();	
+								parent.rendered = true;
 							}
 						} else {
 							// Single image rendering
 							that.img = img;
+							that.rendered = true;							
 							// Do drawing on rendering ended
 							callback();	
 						}
-						parent.rendered = true;
 						parent.rendering = false;
 
 					};
@@ -120,12 +121,10 @@ FormatReader.prototype = {
 						return;
 					}
 
-					console.log('refresh later');
 					$timeout( function() {
 						that.timeout = true;
 						that.isZoom = false;
 						that.triggerRefresh = false;
-						console.log('timeout');
 						that.refresh();
 					},1000);
 					
@@ -134,8 +133,8 @@ FormatReader.prototype = {
 					return;
 				}
 				that.timeout = false;
-				parent.rendered = false;
-				if (options.controls.filmstrip) {
+				that.rendered = false;
+				if (options.controls.filmStrip) {
 					var p = 1;
 					var promises = [];
 					that.images = [];
@@ -217,7 +216,7 @@ FormatReader.prototype = {
 				that.options.controls.numPage = that.options.controls.totalPage;
 			}
 			// Set to correct page
-			if (that.options.controls.filmstrip) {
+			if (that.options.controls.filmStrip) {
 				that.images = [];
 				for(var p=0; p < that.tiff.countDirectory(); p++) {
 					that.tiff.setDirectory(p);

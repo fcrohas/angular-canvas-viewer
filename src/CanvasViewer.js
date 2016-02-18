@@ -86,7 +86,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					disableRotate : false,
 					numPage : 1,
 					totalPage : 1,
-					filmstrip : false
+					filmStrip : false
 				},
 				info : {}
 			}, scope.options );
@@ -160,7 +160,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				scope.resizeTo(value);
 			});
 
-			scope.$watch('options.controls.filmstrip', function(position) {
+			scope.$watch('options.controls.filmStrip', function(position) {
 				
 				if (position) {
 					scope.options.controls.disableMove = true;
@@ -177,7 +177,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				if (scope.options.controls.numPage < 1) scope.options.controls.numPage = 1;
 				if (scope.options.controls.numPage > scope.options.controls.totalPage) scope.options.controls.numPage = scope.options.controls.totalPage;
 				if (reader != null) {
-					if (scope.options.controls.filmstrip) {
+					if (scope.options.controls.filmStrip) {
 						// All pages are already rendered so go to correct page
 						picPos.y = (scope.options.controls.numPage - 1)  * -(reader.height+15);
 						applyTransform();
@@ -193,7 +193,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
                 // cross-browser wheel delta
                 var event = window.event || $event; // old IE support
                 var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
-                if (scope.options.controls.filmstrip) {
+                if (scope.options.controls.filmStrip) {
 					picPos.y += 50 * delta;
 					// Limit range
 					if (picPos.y > 15) {
@@ -255,7 +255,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
     				imageData.data.set(reader.data);
     				ctx.putImageData(imageData, 0, 0);					
 				} 
-				if ((!options.controls.filmstrip) || (options.controls.totalPage == 1)) {
+				if ((!options.controls.filmStrip) || (options.controls.totalPage == 1)) {
 					if (reader.img != null) {
 						ctx.drawImage(reader.img, 0 , 0 , reader.width , reader.height);
 						ctx.beginPath();
