@@ -88,14 +88,16 @@ FormatReader.prototype = {
 							// Add rendered image
 							img.pageNum = pageNum;
 							parent.images.push(img);
+							that.img = img;
 							if (parent.images.length == options.controls.totalPage) {
 								// Do sorting of all pictures
 								parent.images.sort( function(objA, objB) {
 									return objA.pageNum - objB.pageNum;
 								});
 								// Do drawing on rendering ended
-								callback();	
 								parent.rendered = true;
+								callback();	
+								//
 							}
 						} else {
 							// Single image rendering
