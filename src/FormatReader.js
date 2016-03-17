@@ -118,22 +118,25 @@ FormatReader.prototype = {
 				if (that._pdfDoc == null) {
 					return;
 				}
-				if (!that.timeout) {
-					if (that.triggerRefresh) {
-						return;
-					}
-
-					$timeout( function() {
-						that.timeout = true;
-						that.isZoom = false;
-						that.triggerRefresh = false;
-						that.refresh();
-					},1000);
-					
-					that.isZoom = true;
-					that.triggerRefresh = true;
+				if (parent.rendering) {
 					return;
 				}
+				// if (!that.timeout) {
+				// 	if (that.triggerRefresh) {
+				// 		return;
+				// 	}
+
+				// 	$timeout( function() {
+				// 		that.timeout = true;
+				// 		that.isZoom = false;
+				// 		that.triggerRefresh = false;
+				// 		that.refresh();
+				// 	},1000);
+					
+				// 	that.isZoom = true;
+				// 	that.triggerRefresh = true;
+				// 	return;
+				// }
 				that.timeout = false;
 				that.rendered = false;
 				if (options.controls.filmStrip) {

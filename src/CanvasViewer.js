@@ -169,7 +169,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					scope.options.controls.disableMove = false;
 					scope.options.controls.disableRotate = false;
 				}
-				reader.refresh();
+				if (reader.refresh != null) {
+					reader.refresh();
+				}
 			});
 
 			scope.$watch('options.controls.numPage', function(value) {
@@ -182,7 +184,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						picPos.y = (scope.options.controls.numPage - 1)  * -(reader.height+15);
 						applyTransform();
 					} else {
-						reader.refresh();
+						if (reader.refresh != null) {
+							reader.refresh();
+						}
 					}
 				}
 			});
@@ -369,7 +373,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						scope.options.zoom.value = scope.options.zoom.min;
 					}
 					// Refresh picture
-					reader.refresh();
+					if (reader.refresh != null) {
+						reader.refresh();
+					}
+
 					
 					// Compute new image size
 					if (!reader.isZoom) {
@@ -431,7 +438,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					// Update options state
 					scope.options.controls.fit = value;
 					if (!reader.isZoom) {
-						reader.refresh();
+						if (reader.refresh != null) {
+							reader.refresh();
+						}
+
 						// Re center image
 						centerPics();
 					} else {
