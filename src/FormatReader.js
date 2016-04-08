@@ -8,6 +8,7 @@ function FormatReader() {
 	if (typeof(PDFJS) !== "undefined") {
 		// Remove it from list
 		this.mimetype.push("application/pdf");
+		PDFJS.disableWorker = false;
 	}
 	// Is Tiff module present
 	if (typeof(Tiff) !== "undefined") {
@@ -32,7 +33,7 @@ function FormatReader() {
 }
 
 FormatReader.prototype = {
-	pdfReader : function(data, options, callback, $q, $timeout) {
+	pdfReader : function(data, options, callback, $q, $timeout, ctx) {
 		if (options.controls.toolbar) {
 			options.controls.image = true;
 			options.controls.sound = false;
@@ -40,6 +41,7 @@ FormatReader.prototype = {
 		this.reader = new FileReader();
 		// read image object
 		var that = this;
+		that.context = ctx;
 		that.$q = $q;
 		that._pdfDoc = null;
 		that.viewport = null;
@@ -55,8 +57,7 @@ FormatReader.prototype = {
 		that.currentPage = -1;
 		that.rendering = false;
 		that.isZoom = false;
-		that.images = [];
-		that.timeout = false;
+		that.data = [];
 		that.triggerRefresh = false;
 		function renderPage(parent, pageNum, pageObj) {
 			if (pageNum == undefined) {
@@ -75,41 +76,64 @@ FormatReader.prototype = {
 				// set viewport only on 1st page with filmstrip
 				if (Math.abs(parent.options.zoom.value) == 0) parent.options.zoom.value = 1.0;
 				var viewport = pageObj.getViewport( parent.options.zoom.value, 0);
-				canvas.width = viewport.width;
-				canvas.height = viewport.height;
+				context.canvas.width = viewport.width;
+				context.canvas.height = viewport.height;
 				// render to canvas
 				return pageObj.render({canvasContext : context, viewport : viewport, intent : 'display'}).then( function() {
 					// restore canvas
-					var img = new Image();
-					img.onload = function() {
-						parent.width = img.width;
-						parent.height = img.height;
-						if (options.controls.filmStrip) {
-							// Add rendered image
-							img.pageNum = pageNum;
-							parent.images.push(img);
-							that.img = img;
-							if (parent.images.length == options.controls.totalPage) {
-								// Do sorting of all pictures
-								parent.images.sort( function(objA, objB) {
-									return objA.pageNum - objB.pageNum;
-								});
-								// Do drawing on rendering ended
-								parent.rendered = true;
-								callback();	
-								//
-							}
-						} else {
-							// Single image rendering
-							that.img = img;
-							that.rendered = true;							
-							// Do drawing on rendering ended
-							callback();	
-						}
-						parent.rendering = false;
+					// var img = new Image();
+					// img.onload = function() {
+					// 	parent.width = img.width;
+					// 	parent.height = img.height;
+					// 	if (options.controls.filmStrip) {
+					// 		// Add rendered image
+					// 		img.pageNum = pageNum;
+					// 		parent.images.push(img);
+					// 		that.img = img;
+					// 		if (parent.images.length == options.controls.totalPage) {
+					// 			// Do sorting of all pictures
+					// 			parent.images.sort( function(objA, objB) {
+					// 				return objA.pageNum - objB.pageNum;
+					// 			});
+					// 			// Do drawing on rendering ended
+					// 			parent.rendered = true;
+					// 			callback();	
+					// 			//
+					// 		}
+					// 	} else {
+					// 		// Single image rendering
+					// 		that.img = img;
+					// 		that.rendered = true;							
+					// 		// Do drawing on rendering ended
+					// 		callback();	
+					// 	}
+					// 	parent.rendering = false;
 
-					};
-					img.src = canvas.toDataURL();
+					// };
+					// img.src = canvas.toDataURL();
+					parent.width = viewport.width;
+					parent.height = viewport.height;
+
+					if (options.controls.filmStrip) {
+						var item = context.getImageData( 0, 0, viewport.width, viewport.height);
+						item.pageNum = pageNum;
+						parent.data.push(item);
+						if (parent.data.length == options.controls.totalPage) {
+							// Do sorting of all pictures
+							parent.data.sort( function(objA, objB) {
+								return objA.pageNum - objB.pageNum;
+							});
+							// Do drawing on rendering ended
+							parent.rendered = true;
+							callback();	
+							parent.rendering = false;					
+						}
+					} else {
+						that.data = context.getImageData(0,0,viewport.width,viewport.height);
+						that.rendered = true;					
+						callback();
+						parent.rendering = false;					
+					}
 				});
 			}
 		}
@@ -121,28 +145,11 @@ FormatReader.prototype = {
 				if (parent.rendering) {
 					return;
 				}
-				// if (!that.timeout) {
-				// 	if (that.triggerRefresh) {
-				// 		return;
-				// 	}
-
-				// 	$timeout( function() {
-				// 		that.timeout = true;
-				// 		that.isZoom = false;
-				// 		that.triggerRefresh = false;
-				// 		that.refresh();
-				// 	},1000);
-					
-				// 	that.isZoom = true;
-				// 	that.triggerRefresh = true;
-				// 	return;
-				// }
-				that.timeout = false;
 				that.rendered = false;
 				if (options.controls.filmStrip) {
 					var p = 1;
 					var promises = [];
-					that.images = [];
+					that.data = [];
 					for (var p = 1; p <= options.controls.totalPage; p++) {
 						promises.push( that._pdfDoc.getPage(p) );
 					}
@@ -190,7 +197,7 @@ FormatReader.prototype = {
 		var that = this;
 		that.rendered = false;
 		that.tiff = null;
-		that.img = new Image();
+		that.img = null;
 		that.data = null;
 		that.width = -1;
 		that.height = -1;
@@ -199,6 +206,8 @@ FormatReader.prototype = {
 		that.currentPage = -1;	
 		that.isZoom = true;
 		this.refresh = function() {
+			if (that.reader.result==undefined)
+				return;
 			if (that.tiff == null) {
 				that.tiff = new Tiff( {buffer : that.reader.result});
 				that.options.controls.totalPage = that.tiff.countDirectory();
@@ -236,6 +245,7 @@ FormatReader.prototype = {
 							that.img = that.images[0];
 						}
 						callback();
+						that.rendered = true;						
 					}
 					that.images[p].src = that.tiff.toDataURL();
 					that.images[p].pageNum = p;
@@ -244,17 +254,15 @@ FormatReader.prototype = {
 
 			} else {
 				if (that.currentPage != that.options.controls.numPage) {
-					var img = new Image();
-					img.onload = function() {
-						that.img = img;
-						callback();
-						that.rendered = true;
-					}
 					that.tiff.setDirectory(that.options.controls.numPage-1);
 					that.width = that.tiff.width();
 					that.height = that.tiff.height();
-					//that.data = new Uint8Array(that.tiff.readRGBAImage());			
-					img.src = that.tiff.toDataURL();
+					that.img = new Image();
+					that.img.onload = function() {
+						callback();
+						that.rendered = true;						
+					}					
+					that.img.src = that.tiff.toDataURL();
 					that.currentPage = that.options.controls.numPage;
 				}
 			}
@@ -284,7 +292,7 @@ FormatReader.prototype = {
 			that.width = that.img.width;
 			that.height = that.img.height;
 			callback();	
-			that.rendered = true;
+			that.rendered = true;			
 		}	
 		that.data = null;
 		that.width = -1;
@@ -304,7 +312,7 @@ FormatReader.prototype = {
 		options.controls.totalPage = 1;
 		options.controls.numPage = 1;
 		this.refresh = function() {
-			// do nothing			
+			// do nothing	
 		};
 		return this;
 	},

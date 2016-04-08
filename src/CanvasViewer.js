@@ -121,7 +121,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						// get object
 						var decoder = formatReader.CreateReader(value.type, value);
 						// Create image
-						reader = decoder.create(value, scope.options, onload, $q, $timeout);
+						reader = decoder.create(value, scope.options, onload, $q, $timeout, ctx);
 					} else {
 						console.log(value.type,' not supported !');
 					}
@@ -195,7 +195,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			angular.element(canvasEl).bind("DOMMouseScroll mousewheel onmousewheel", function($event) {
 
                 // cross-browser wheel delta
-                var event = window.event || $event; // old IE support
+                var event = $window.event || $event; // old IE support
                 var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
                 if (scope.options.controls.filmStrip) {
 					picPos.y += 50 * delta;
@@ -236,6 +236,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				if (reader == null) {
 					return;
 				}
+				if (!reader.rendered) {
+					return;
+				}
 				var options = scope.options;
 				var canvas = ctx.canvas ;
 				var centerX = reader.width * options.zoom.value/2;
@@ -253,12 +256,6 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				// Change scale
 				if (reader.isZoom)
 					ctx.scale( options.zoom.value , options.zoom.value);
-				// Draw image at correct position with correct scale
-				if (reader.data != null) {
-					var imageData = ctx.createImageData(reader.width, reader.height);
-    				imageData.data.set(reader.data);
-    				ctx.putImageData(imageData, 0, 0);					
-				} 
 				if ((!options.controls.filmStrip) || (options.controls.totalPage == 1)) {
 					if (reader.img != null) {
 						ctx.drawImage(reader.img, 0 , 0 , reader.width , reader.height);
@@ -268,6 +265,15 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 						ctx.strokeStyle = "#000000";
 						ctx.stroke();
 					}
+					// Draw image at correct position with correct scale
+					if (reader.data != null) {
+	    				ctx.putImageData(reader.data, picPos.x, picPos.y);					
+						ctx.beginPath();
+						ctx.rect( 0, 0, reader.width , reader.height );
+						ctx.lineWidth = 0.2;
+						ctx.strokeStyle = "#000000";
+						ctx.stroke();
+					} 
 				} else {
 					if (reader.images != null) {
 						angular.forEach(reader.images, function(image) { 
@@ -280,6 +286,20 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 							ctx.translate(0, image.height + 15);
 						});
 					}
+					// Draw image at correct position with correct scale
+					if (reader.data != null) {
+						var offsetY = 0;
+						angular.forEach(reader.data, function(data) { 
+		    				ctx.putImageData(data, picPos.x, picPos.y + offsetY);					
+							ctx.beginPath();
+							ctx.rect( 0, 0, reader.width , reader.height );
+							ctx.lineWidth = 0.2;
+							ctx.strokeStyle = "#000000";
+							ctx.stroke();
+							offsetY += reader.height + 15;
+							ctx.translate(0, offsetY);
+						});
+					} 
 				}
 				// Restore
 				ctx.restore();
@@ -487,10 +507,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			scope.$watch(parentChange, function() {
 					resizeCanvas();	
 			}, true);
-        	// resize canvas on window resize to keep aspect ratio
-			angular.element($window).bind('resize', function() {
-			 	resizeCanvas();
-			});
+   //      	// resize canvas on window resize to keep aspect ratio
+			// angular.element($window).bind('resize', function() {
+			//  	resizeCanvas();
+			// });
       	}
 	};
 }]);
