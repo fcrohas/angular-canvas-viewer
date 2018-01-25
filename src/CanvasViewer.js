@@ -449,6 +449,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				switch(value) {
 					case 'width' : scope.options.zoom.value = ratioW; break;
 					case 'height' : scope.options.zoom.value = ratioH; break;
+					case 'auto' : scope.options.zoom.value = Math.min(ratioH, ratioW, 1); break;
 					case 'page' :
 					default : scope.options.zoom.value = Math.min(ratioH,ratioW); 
 				}
