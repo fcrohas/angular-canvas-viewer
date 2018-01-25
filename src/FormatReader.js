@@ -205,6 +205,7 @@ FormatReader.prototype = {
 		that.images = [];
 		that.currentPage = -1;	
 		that.isZoom = true;
+		that.isImage = true;
 		this.refresh = function() {
 			if (that.reader.result==undefined)
 				return;
@@ -299,6 +300,7 @@ FormatReader.prototype = {
 		that.height = -1;
 		options.info = {};
 		that.isZoom = true;
+		that.isImage = true;
 		that.rendered = false;
 		this.reader.onload = function() {
 			that.img.src = that.reader.result;

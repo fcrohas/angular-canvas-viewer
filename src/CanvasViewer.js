@@ -425,10 +425,20 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			var centerPics = function() {
 				// Position to canvas center
 				var centerX = ctx.canvas.width / 2;
+				var centerY;
 				var picPosX = 0;
-				picPosX =  centerX - (reader.width * scope.options.zoom.value) / 2;
-				curPos = { x : picPosX, y : 0};
-				picPos = { x : picPosX, y : 0};
+                var picPosY= 0;
+                
+				if (reader.isImage) {
+	                centerY = ctx.canvas.height / 2;
+	                picPosX = centerX - (reader.width * scope.options.zoom.value) / 2;
+	                picPosY = centerY - (reader.height * scope.options.zoom.value) / 2;
+				}else {
+					picPosX =  centerX - (reader.width * scope.options.zoom.value) / 2;
+				}
+				
+                curPos = { x: picPosX, y: picPosY };
+                picPos = { x: picPosX, y: picPosY };
 			}
 
 			scope.resizeTo = function(value) {
