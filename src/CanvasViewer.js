@@ -47,15 +47,15 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			var	canvasEl = iElm.find('canvas')[0];
 			var ctx = canvasEl.getContext('2d');
 			// look for
-			var inNode = angular.element(iElm.find('div')[0])[0];
-			directiveParentNode = inNode.parentNode.parentNode;
+			//var inNode = angular.element(iElm.find('div')[0])[0];
+			//directiveParentNode = inNode.parentNode.parentNode;
 			// orce correct canvas size
 			var canvasSize = canvasEl.parentNode;
 			ctx.canvas.width  = canvasSize.clientWidth;
 			ctx.canvas.height = canvasSize.clientHeight;
 			var resize = { height : canvasSize.clientHeight, width : canvasSize.clientWidth};
 			// initialize variable
-			var img = null;
+			//var img = null;
 			var curPos = { x : 0, y : 0};
 			var picPos = { x : 0, y : 0};
 			var mousePos = { x : 0, y : 0};
