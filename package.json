@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fcrohas/angular-raphael-viewer.git"
+    "url": "git+https://github.com/formanite-20/angular-canvas-viewer.git"
   },
   "keywords": [
     "angular",
@@ -32,7 +32,7 @@
   "author": "fcrohas@gmail.com",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/fcrohas/angular-raphael-viewer/issues"
+    "url": "https://github.com/formanite-20/angular-canvas-viewer/issues"
   },
-  "homepage": "https://github.com/fcrohas/angular-raphael-viewer#readme"
+  "homepage": "https://github.com/formanite-20/angular-canvas-viewer#readme"
 }

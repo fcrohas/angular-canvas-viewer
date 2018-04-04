@@ -6,7 +6,6 @@
   "description": "Image viewer using raphaeljs",
   "main": "dist/CanvasViewer.all.min.js",
   "style": "dist/CanvasViewer.min.css",
-  "main": "module.js",
   "moduleType": [],
   "keywords": [
     "angular",
@@ -15,7 +14,7 @@
     "viewer"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/fcrohas/angular-raphael-viewer",
+  "homepage": "https://github.com/formanite-20/angular-canvas-viewer",
   "private": true,
   "ignore": [
     "**/.*",
