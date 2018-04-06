@@ -33,7 +33,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				'<div class="btn btn-info" title="Rotate left" ng-click="rotate(-1)" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-left"></i></div>'+
 				'<div class="btn btn-info" title="Rotate right" ng-click="rotate(1)" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-right"></i></div>'+
 				'<div class="btn btn-info" title="Zoom Out" ng-click="zoom(-1)" ng-hide="options.controls.disableZoom"><i class="fa fa-search-minus"></i></div>'+
-        '<div class="btn btn-info" title="Reset" ng-click="resizeTo(\'page\')"><i class="fa fa-circle-o-notch"></i></div>'+
+        '<div class="btn btn-info" title="Reset" ng-click="resizeTo(\'page\')"><i class="fa fa-plus"></i></div>'+
 				'<div class="btn btn-info" title="Zoom In" ng-click="zoom(1)" ng-hide="options.controls.disableZoom"><i class="fa fa-search-plus"></i></div></div>'+
 				'<div class="command" ng-if="options.controls.sound">'+
 				'<div class="btn btn-info" ng-click="stop()"><i class="fa fa-stop"></i></div>'+
