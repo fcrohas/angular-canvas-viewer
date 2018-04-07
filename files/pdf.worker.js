@@ -39566,7 +39566,7 @@ var MurmurHash3_64 = (function MurmurHash3_64Closure (seed) {
 
 }).call((typeof window === 'undefined') ? this : window);
 
-if (!PDFJS.workerSrc && typeof document !== 'undefined') {
+/*if (!PDFJS.workerSrc && typeof document !== 'undefined') {
   // workerSrc is not set -- using last script url to define default location
   PDFJS.workerSrc = (function () {
     'use strict';
@@ -39575,6 +39575,6 @@ if (!PDFJS.workerSrc && typeof document !== 'undefined') {
     var pdfjsSrc = scriptTagContainer.lastChild.src;
     return pdfjsSrc && pdfjsSrc.replace(/\.js$/i, '.worker.js');
   })();
-}
+}*/
 
 
