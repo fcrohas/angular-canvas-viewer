@@ -8,7 +8,7 @@ var gulp = require('gulp')
 
 // task for js
 gulp.task('dist', function () {
-    gulp.src(['./assets/lib/pdfjs/pdf.worker.js', './assets/lib/libtiff/tiff.min.js', './assets/lib/pdfjs/pdf.compat.js', './assets/lib/pdfjs/pdf.js','./src/FormatReader.js','./src/CanvasViewer.js'])
+    gulp.src(['./assets/lib/libtiff/tiff.min.js', './assets/lib/pdfjs/pdf.compat.js', './assets/lib/pdfjs/pdf.js','./src/FormatReader.js','./src/CanvasViewer.js'])
     .pipe(uglify())
     .pipe(concat('CanvasViewer.all.min.js'))
     .pipe(gulp.dest('./dist'));

@@ -34,6 +34,7 @@ function FormatReader() {
 
 FormatReader.prototype = {
 	pdfReader : function(data, options, callback, $q, $timeout, ctx) {
+	  debugger
 		if (options.controls.toolbar) {
 			options.controls.image = true;
 			options.controls.sound = false;
