@@ -4,7 +4,7 @@
     "Fabrice Crohas <fcrohas@gmail.com>"
   ],
   "description": "Image viewer using raphaeljs",
-  "main": ["./files/pdf.worker.js", "./files/tiff.min.js", "./files/pdf.compat.js", "./files/pdf.js","./files/FormatReader.js","./files/CanvasViewer.js"],
+  "main": ["./files/tiff.min.js", "./files/pdf.compat.js", "./files/pdf.js","./files/FormatReader.js","./files/CanvasViewer.js"],
   "moduleType": [],
   "keywords": [
     "angular",
