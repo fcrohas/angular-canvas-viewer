@@ -169,7 +169,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 					scope.options.controls.disableMove = false;
 					scope.options.controls.disableRotate = false;
 				}
-				if (reader.refresh && reader.refresh != null) {
+				if (reader && reader.refresh && reader.refresh != null) {
 					reader.refresh();
 				}
 			});
