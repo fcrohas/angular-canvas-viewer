@@ -256,7 +256,7 @@ angular.module('CanvasViewer', []).directive('canvasViewer', ['$window', '$http'
         // Change scale
         if (reader.isZoom)
           ctx.scale(options.zoom.value, options.zoom.value);
-        if ((!options.controls.filmStrip) || (options.controls.totalPage == 1)) {
+        if (isFileImage) {//(!options.controls.filmStrip) || (options.controls.totalPage == 1)) {
           if (reader.img != null) {
             ctx.drawImage(reader.img, 0, 0, reader.width, reader.height);
             ctx.beginPath();
