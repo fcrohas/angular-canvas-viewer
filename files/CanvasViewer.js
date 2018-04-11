@@ -61,7 +61,7 @@ angular.module('CanvasViewer', []).directive('canvasViewer', ['$window', '$http'
       var mousePos = {x: 0, y: 0};
       var overlays = [];
       var reader = null;
-      var isFileImage = scope.options.controls.image;
+      var isFileImage = scope.options ? scope.options.controls.image : false;
       // Merge scope with default values
       scope.options = angular.merge({}, {
         ctx: null,
