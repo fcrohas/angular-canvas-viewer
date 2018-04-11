@@ -30,8 +30,8 @@ angular.module('CanvasViewer', []).directive('canvasViewer', ['$window', '$http'
     '<div class="btn btn-info" title="Previous" ng-click="options.controls.numPage=options.controls.numPage-1" ng-hide="options.controls.totalPage==1"><i class="fa fa-minus"></i></div>' +
     '<div class="btn btn-info" ng-hide="options.controls.totalPage==1">{{options.controls.numPage}}/{{options.controls.totalPage}}</div>' +
     '<div class="btn btn-info" title="Next" ng-click="options.controls.numPage=options.controls.numPage+1" ng-hide="options.controls.totalPage==1"><i class="fa fa-plus"></i></div>' +
-    '<div class="btn btn-info" title="Rotate left" ng-click="rotate(-1)" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-left"></i></div>' +
-    '<div class="btn btn-info" title="Rotate right" ng-click="rotate(1)" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-right"></i></div>' +
+    //'<div class="btn btn-info" title="Rotate left" ng-click="rotate(-1)" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-left"></i></div>' +
+    //'<div class="btn btn-info" title="Rotate right" ng-click="rotate(1)" ng-hide="options.controls.disableRotate"><i class="fa fa-rotate-right"></i></div>' +
     '<div class="btn btn-info" title="Zoom Out" ng-click="zoom(-1)" ng-hide="options.controls.disableZoom"><i class="fa fa-search-minus"></i></div>' +
     '<div class="btn btn-info" title="Reset" ng-click="resizeTo(\'page\')"><i class="fa fa-circle-o-notch"></i></div>' +
     '<div class="btn btn-info" title="Zoom In" ng-click="zoom(1)" ng-hide="options.controls.disableZoom"><i class="fa fa-search-plus"></i></div></div>' +
