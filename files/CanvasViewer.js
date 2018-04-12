@@ -258,7 +258,12 @@ angular.module('CanvasViewer', []).directive('canvasViewer', ['$window', '$http'
           ctx.scale(options.zoom.value, options.zoom.value);
         if ((!options.controls.filmStrip) || (options.controls.totalPage == 1)) {
           if (reader.img != null) {
-            ctx.drawImage(reader.img, 0, 0, reader.width, reader.height);
+            if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent) && !isFileImage) {
+              ctx.drawImage(reader.img, 33, 71, 104, 124, 21, 20, 87, 104);
+            }
+            else {
+              ctx.drawImage(reader.img, 0, 0, reader.width, reader.height);
+            }
             ctx.beginPath();
             ctx.rect(0, 0, reader.width, reader.height);
             ctx.lineWidth = 0.2;
