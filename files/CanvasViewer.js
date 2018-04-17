@@ -446,9 +446,15 @@ angular.module('CanvasViewer', []).directive('canvasViewer', ['$window', '$http'
           picPosX = centerX - 400 - (reader.width * scope.options.zoom.value) / 2;
         }
 
-        curPos = {x: picPosX, y: picPosY};
-        picPos = {x: picPosX, y: picPosY};
-
+        if (isFileImage) {
+          curPos = {x: picPosX, y: picPosY};
+          picPos = {x: picPosX, y: picPosY};
+        }
+        else {
+          // need to fix this TODO
+          curPos = {x: ctx.canvas.width/3.5, y: picPosY};
+          picPos = {x: ctx.canvas.width/3.5, y: picPosY};
+        }
       }
 
       scope.resizeTo = function (value) {
