@@ -474,7 +474,7 @@ angular.module('CanvasViewer', []).directive('canvasViewer', ['$window', '$http'
             return Math.min(ratioH, ratioW, 1);
           }
           else {
-            return 1.50;
+            return (ctx.canvas.height/1000) + 0.20;
           }
         };
 
