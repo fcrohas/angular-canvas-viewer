@@ -1870,6 +1870,7 @@ PDFJS.getDocument = function getDocument(src,
     params[key] = source[key];
   }
 
+  PDFJS.disableWorker = true;
   workerInitializedCapability = createPromiseCapability();
   transport = new WorkerTransport(workerInitializedCapability, source.range);
   workerInitializedCapability.promise.then(function transportInitialized() {
