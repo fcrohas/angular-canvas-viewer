@@ -106,8 +106,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			}
 
 			scope.$watch('imageSource', function(value) {
-				if (value === undefined || value === null)
+				if (value === undefined || value === null){
+					reader.close();
 					return;
+				}
 				// initialize values on load
 				scope.options.zoom.value = 1.0;
 				scope.options.rotate.value = 0;
@@ -423,6 +425,9 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 			};
 
 			var centerPics = function() {
+				// Updates canvas size before centering
+				ctx.canvas.width  = canvasSize.clientWidth;
+				ctx.canvas.height = canvasSize.clientHeight;
 				// Position to canvas center
 				var centerX = ctx.canvas.width / 2;
 				var centerY;
@@ -445,6 +450,10 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				if ((ctx.canvas == null) || (reader == null))  {
 					return;
 				}
+
+				// Updates canvas size, to guarantee that zoom value is not computed as zero
+				ctx.canvas.width  = canvasSize.clientWidth;
+				ctx.canvas.height = canvasSize.clientHeight;
 				// Compute page ratio
 				var options = scope.options;
 				var ratioH = ctx.canvas.height / reader.height;
