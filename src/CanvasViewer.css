@@ -1,5 +1,5 @@
 .viewer-container {
-	background-color: #e8e8e8;
+	background-color: #404040;
 	border-radius: 5px;
 	border-color: black;
 	border-width: 2px;
@@ -33,16 +33,4 @@ canvas.viewer {
 
 .command > .btn > i {
 	z-index : 100;
-}
-
-.title {
-	position : absolute;
-	top : 0px;
-	z-index : 100;
-	padding : 5px;
-	background-color: #888888;
-	border-radius: 3px 0px 0px 0px;
-	margin-top: 2px;
-	opacity: 0.8;
-	color : white;
 }
