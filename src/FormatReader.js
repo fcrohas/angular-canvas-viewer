@@ -297,8 +297,8 @@ FormatReader.prototype = {
 		that.img.onload = function() {
 			that.width = that.img.width;
 			that.height = that.img.height;
-			callback();
 			that.rendered = true;
+			callback();
 		}	
 		that.data = null;
 		that.width = -1;

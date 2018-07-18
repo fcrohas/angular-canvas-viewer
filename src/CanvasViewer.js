@@ -99,6 +99,7 @@ angular.module('CanvasViewer',[]).directive('canvasViewer', ['$window', '$http',
 				}
 
 				if (reader.rendered) {
+					centerPics();
 					applyTransform();
 				} else {
 					scope.resizeTo(scope.options.controls.fit);
