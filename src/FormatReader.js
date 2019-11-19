@@ -1,5 +1,6 @@
 function FormatReader() {
 	this.mimetype = [
+		"image/bmp",
 		"image/png",
 		"image/jpeg"
 	];
@@ -246,7 +247,7 @@ FormatReader.prototype = {
 							that.img = that.images[0];
 						}
 						callback();
-						that.rendered = true;						
+						that.rendered = true;
 					}
 					that.images[p].src = that.tiff.toDataURL();
 					that.images[p].pageNum = p;
@@ -261,12 +262,16 @@ FormatReader.prototype = {
 					that.img = new Image();
 					that.img.onload = function() {
 						callback();
-						that.rendered = true;						
+						that.rendered = true;
 					}					
 					that.img.src = that.tiff.toDataURL();
 					that.currentPage = that.options.controls.numPage;
 				}
 			}
+		};
+
+		this.close = function(){
+			that.tiff.close();
 		};
 
 		this.reader.onload = function() {
@@ -292,8 +297,8 @@ FormatReader.prototype = {
 		that.img.onload = function() {
 			that.width = that.img.width;
 			that.height = that.img.height;
-			callback();	
-			that.rendered = true;			
+			that.rendered = true;
+			callback();
 		}	
 		that.data = null;
 		that.width = -1;
@@ -315,6 +320,9 @@ FormatReader.prototype = {
 		options.controls.numPage = 1;
 		this.refresh = function() {
 			// do nothing	
+		};
+		this.close = function() {
+			// do nothing
 		};
 		return this;
 	},
@@ -396,10 +404,13 @@ FormatReader.prototype = {
 			mimeType = this.GuessMimeType(obj);
 		}
 
-		switch(mimeType.toLowerCase()) {
+		var type = mimeType.substring(0, mimeType.indexOf(';') == -1 ? mimeType.length : mimeType.indexOf(';'));
+		
+		switch(type.toLowerCase()) {
 			case "image/tif" :
-			case "image/tiff" :reader = { create : this.tiffReader }; break;
+			case "image/tiff" : reader = { create : this.tiffReader }; break;
 			case "application/pdf" : reader = { create : this.pdfReader }; break;
+			case "image/bmp":
 			case "image/png" : 
 			case "image/jpeg" : reader = { create : this.imageReader}; break;
 			case "audio/x-wav" : 
@@ -412,7 +423,9 @@ FormatReader.prototype = {
 		return reader;
 	},
 	IsSupported : function(mimeType) {
-		return (this.mimetype.indexOf(mimeType) != -1);
+		var type = mimeType.substring(0, mimeType.indexOf(';') == -1 ? mimeType.length : mimeType.indexOf(';'));
+
+		return (this.mimetype.indexOf(type) != -1);
 	},
 	GuessMimeType : function(obj) {
 		// try to guess mime type if not available
