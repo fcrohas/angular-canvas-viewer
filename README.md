@@ -29,6 +29,10 @@ You need  `npm` package manager :
 
 ## How to use it
 
+Installation using bower 
+
+    # bower install angular-canvas-viewer --save
+
  The directive usage is as follow ( CanvasViewer.min.worker.js must be in same folder that CanvasViewer.min.js but not in `script` tag ), `src` can be either a `string` or a `File` or `Blob` object :
 
 ```html
